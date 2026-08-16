@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  background-color: #F1F4FC;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-cod-pink focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+}
+
+.field {
+  @apply w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400
+         transition-colors duration-150 outline-none focus:border-cod-blue focus:ring-2 focus:ring-cod-blue/20;
+}
+
+/* Report card printing: hide everything except the modal's printable content */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print\:visible-block,
+  .print\:visible-block * {
+    visibility: visible;
+  }
+  .print\:visible-block {
+    position: absolute;
+    inset: 0;
+  }
+}
