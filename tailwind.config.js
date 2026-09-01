@@ -1,53 +1,38 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
         cod: {
-          blue: {
-            DEFAULT: "#1E4FD9",
-            dark: "#0B2A8A",
-            light: "#3D6BEE",
-          },
-          pink: {
-            DEFAULT: "#E91E8C",
-            light: "#EC4899",
-          },
-          bg: "#F1F4FC",
+          blue: '#1D4ED8',
+          'blue-dark': '#152B6B',
+          'blue-deep': '#12224F',
+          navy: '#0E1830',
+          pink: '#EC4899',
+          'pink-light': '#F472B6',
+          lavender: '#F3EEFB',
+          'lavender-deep': '#EDE4FB',
+          // Exact brand tokens pulled from the Figma source (use these for
+          // any screen built from Figma going forward — see README).
+          'brand-navy': '#0F4082',
+          'brand-blue': '#1A73E8',
+          'brand-pink': '#FF2E96',
+          'brand-green': '#34A853',
         },
-      },
-      backgroundImage: {
-        "cod-panel": "linear-gradient(180deg, #2E5CF0 0%, #0B2A8A 100%)",
-        "cod-btn": "linear-gradient(90deg, #2E5CF0 0%, #E91E8C 100%)",
-        "cod-hero": "linear-gradient(120deg, #0B2A8A 0%, #1E4FD9 55%, #2E63F5 100%)",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ['"Poppins"', 'sans-serif'],
+        body: ['"Inter"', 'sans-serif'],
+        // Figma source uses Ebrima (a Microsoft system font, not on Google
+        // Fonts). Falls back to Segoe UI / system sans where unavailable.
+        figma: ['"Ebrima"', '"Segoe UI"', 'ui-sans-serif', 'sans-serif'],
       },
-      keyframes: {
-        fadeUp: {
-          "0%": { opacity: 0, transform: "translateY(12px)" },
-          "100%": { opacity: 1, transform: "translateY(0)" },
-        },
-        fadeIn: {
-          "0%": { opacity: 0 },
-          "100%": { opacity: 1 },
-        },
-        scaleIn: {
-          "0%": { opacity: 0, transform: "scale(0.96)" },
-          "100%": { opacity: 1, transform: "scale(1)" },
-        },
-      },
-      animation: {
-        fadeUp: "fadeUp 0.6s ease-out forwards",
-        fadeIn: "fadeIn 0.6s ease-out forwards",
-        scaleIn: "scaleIn 0.4s ease-out forwards",
+      backgroundImage: {
+        'cod-gradient': 'linear-gradient(135deg, #1D4ED8 0%, #7C3AED 55%, #EC4899 100%)',
+        'cod-gradient-soft': 'linear-gradient(135deg, #EEF2FF 0%, #FCE7F3 100%)',
       },
     },
   },
   plugins: [],
-};
+}

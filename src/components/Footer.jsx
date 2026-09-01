@@ -1,72 +1,45 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom'
 
 const columns = [
   {
-    title: "Navigation",
+    title: 'NAVIGATION',
     links: [
-      { label: "Home", to: "/" },
-      { label: "Programmes", to: "/programmes" },
-      { label: "About", to: "/about" },
-      { label: "News", to: "/news" },
-      { label: "Contact", to: "/contact" },
+      { label: 'HOME', to: '/#home' },
+      { label: 'PROGRAMMES', to: '/#programmes' },
+      { label: 'ABOUT', to: '/#about' },
+      { label: 'NEWS', to: '/#news' },
+      { label: 'CONTACT', to: '/#contact' },
     ],
   },
   {
-    title: "Support",
-    links: [
-      { label: "Help Center", to: "/contact" },
-      { label: "FAQs", to: "/contact" },
-      { label: "Live Chat", to: "/contact" },
-    ],
+    title: 'SUPPORT',
+    links: ['HELP CENTER', 'FAQS', 'LIVE CHAT'],
   },
   {
-    title: "Socials",
-    // external — update these hrefs to your real profiles
-    links: [
-      { label: "X", href: "https://x.com" },
-      { label: "Instagram", href: "https://instagram.com" },
-      { label: "Facebook", href: "https://facebook.com" },
-      { label: "LinkedIn", href: "https://linkedin.com" },
-      { label: "TikTok", href: "https://tiktok.com" },
-    ],
+    title: 'SOCIALS',
+    links: ['X', 'INSTAGRAM', 'FACEBOOK', 'LINKEDIN', 'TIKTOK'],
   },
   {
-    title: "Terms",
-    links: [
-      { label: "Privacy", to: "/privacy" },
-      { label: "Terms of Service", to: "/terms" },
-      { label: "Refund Policy", to: "/refund-policy" },
-      { label: "Disclaimer", to: "/disclaimer" },
-    ],
+    title: 'TERMS',
+    links: ['PRIVACY', 'TERMS OF SERVICE', 'REFUND POLICY', 'DISCLAIMER'],
   },
-];
+]
 
 export default function Footer() {
   return (
-    <footer className="bg-cod-blue-dark text-blue-100">
-      <div className="max-w-6xl mx-auto px-6 lg:px-10 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-        {columns.map((col) => (
-          <div key={col.title}>
-            <span className="inline-block rounded-lg bg-cod-blue text-white text-xs font-bold tracking-wider uppercase px-4 py-2 mb-5">
+    <footer id="contact" className="bg-cod-navy text-white/80">
+      <div className="max-w-7xl mx-auto px-5 md:px-8 py-14 grid grid-cols-2 md:grid-cols-4 gap-8">
+        {columns.map((col, i) => (
+          <div key={col.title} className="animate-slideUp" style={{ animationDelay: `${i * 100}ms` }}>
+            <p className="text-[11px] font-semibold tracking-widest text-white/50 mb-4">
               {col.title}
-            </span>
-            <ul className="space-y-3 text-sm">
+            </p>
+            <ul className="space-y-2.5 text-sm">
               {col.links.map((link) => (
                 <li key={link.label}>
-                  {link.to ? (
-                    <Link className="hover:text-white transition-colors uppercase tracking-wide" to={link.to}>
-                      {link.label}
-                    </Link>
-                  ) : (
-                    <a
-                      className="hover:text-white transition-colors uppercase tracking-wide"
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {link.label}
-                    </a>
-                  )}
+                  <Link to={link.to} className="hover:text-white transition-colors">
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -74,9 +47,9 @@ export default function Footer() {
         ))}
       </div>
 
-      <div className="border-t border-white/10 px-6 py-6 text-center text-xs text-blue-200">
-        © {new Date().getFullYear()} Clan of David Academy. All rights reserved.
+      <div className="border-t border-white/10 py-6 text-center text-xs text-white/50 animate-fadeIn" style={{ animationDelay: "400ms" }}>
+        © 2026 Clan of David Academy. All rights reserved.
       </div>
     </footer>
-  );
+  )
 }

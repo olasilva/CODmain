@@ -11,10 +11,10 @@ export const student = {
 };
 
 export const dashboardStats = [
-  { icon: "📚", value: "4", label: "Enrolled courses" },
-  { icon: "🎓", value: "3", label: "Today's Classes" },
-  { icon: "📝", value: "2", label: "Pending Assignments" },
-  { icon: "⭐", value: "4.2", label: "Current GPA" },
+  { icon: "courses", value: "4", label: "Enrolled courses" },
+  { icon: "classes", value: "3", label: "Today's Classes" },
+  { icon: "assignments", value: "2", label: "Pending Assignments" },
+  { icon: "gpa", value: "4.2", label: "Current GPA" },
 ];
 
 export const todaysSchedule = [

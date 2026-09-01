@@ -71,7 +71,7 @@ export default function Assignments() {
                     <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-500">
                       <span>📅 Due: {a.due}</span>
                       <span>⭐ {a.points} points</span>
-                      {a.submittedOn && <span className="text-emerald-600">✓ Submitted on {a.submittedOn}</span>}
+                      {a.submittedOn && <span className="text-emerald-600">✅ Submitted on {a.submittedOn}</span>}
                     </div>
                   </div>
 

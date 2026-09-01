@@ -1,9 +1,15 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const initialForm = { fullName: "", email: "", phone: "", password: "" };
 
 export default function SignUp() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const roleFromQuery = new URLSearchParams(location.search).get('role');
+  const [selectedRole, setSelectedRole] = useState(
+    roleFromQuery === 'staff' ? 'staff' : 'student'
+  );
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(initialForm);
 
@@ -19,11 +25,32 @@ export default function SignUp() {
   return (
     <div className="min-h-screen bg-cod-bg flex items-center justify-center px-6 py-16">
       <div className="w-full max-w-md animate-fadeUp">
+        <div className="mb-6">
+          <div className="inline-flex w-full rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+            {['student', 'staff'].map((role) => (
+              <button
+                key={role}
+                type="button"
+                onClick={() => setSelectedRole(role)}
+                className={`flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
+                  selectedRole === role ? 'bg-cod-btn text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {role === 'student' ? 'Student' : 'Staff'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <StepIndicator step={step} />
 
         {step === 1 && (
           <>
-            <h1 className="text-slate-900 text-3xl font-bold mb-1">Create Account</h1>
+            <h1 className="text-slate-900 text-3xl font-bold mb-1">
+              {selectedRole === 'staff'
+                ? 'Create Staff Account'
+                : 'Create Student Account'}
+            </h1>
             <p className="text-slate-500 mb-8">Step 1: Basic information</p>
 
             <form onSubmit={handleStep1Submit} className="space-y-6">
@@ -85,7 +112,7 @@ export default function SignUp() {
         )}
 
         {step === 2 && (
-          <Step2 form={form} onBack={() => setStep(1)} />
+          <Step2 form={form} onBack={() => setStep(1)} selectedRole={selectedRole} />
         )}
 
         <div className="flex items-center gap-4 my-6">
@@ -95,7 +122,7 @@ export default function SignUp() {
         </div>
 
         <div className="text-center">
-          <Link to="/login" className="focus-ring inline-flex items-center gap-1.5 text-cod-blue font-bold hover:text-cod-blue-dark transition-colors">
+          <Link to={`/login?role=${selectedRole}`} className="focus-ring inline-flex items-center gap-1.5 text-cod-blue font-bold hover:text-cod-blue-dark transition-colors">
             Login
             <span aria-hidden>→</span>
           </Link>
@@ -133,14 +160,15 @@ function StepIndicator({ step }) {
  * Replace with whatever step 2 should actually collect (e.g. role
  * selection, terms acceptance, or verification code).
  */
-function Step2({ form, onBack }) {
+function Step2({ form, onBack, selectedRole }) {
+  const navigate = useNavigate();
   const [agreed, setAgreed] = useState(false);
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!agreed) return;
-    // TODO: wire this up to your real signup (e.g. Supabase auth.signUp)
     console.log("signup", form);
+    navigate(`/login?role=${selectedRole}`);
   }
 
   return (

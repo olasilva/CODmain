@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
 import { student, dashboardStats, todaysSchedule, dashboardAssignments } from "../../data/student";
+import { CalendarIcon, DocumentIcon, CoursesIcon, ClassesIcon, AssignmentsIcon, StarIcon } from "../../components/BoxIcons";
 
 export default function Dashboard() {
   return (
@@ -22,7 +23,10 @@ export default function Dashboard() {
               style={{ animationDelay: `${i * 60}ms` }}
               className="opacity-0 animate-fadeUp rounded-2xl bg-white border border-slate-200 px-6 py-6"
             >
-              <span className="text-2xl mb-3 block">{s.icon}</span>
+              {s.icon === "courses" && <CoursesIcon className="w-8 h-8 mb-3" />}
+              {s.icon === "classes" && <ClassesIcon className="w-8 h-8 mb-3" />}
+              {s.icon === "assignments" && <AssignmentsIcon className="w-8 h-8 mb-3" />}
+              {s.icon === "gpa" && <StarIcon className="w-8 h-8 mb-3" />}
               <p className="text-slate-900 text-3xl font-bold mb-1">{s.value}</p>
               <p className="text-slate-500 text-sm">{s.label}</p>
             </div>
@@ -32,7 +36,7 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 rounded-2xl bg-white border border-slate-200 p-6 animate-fadeUp">
             <h2 className="flex items-center gap-2 text-slate-800 font-bold text-lg mb-5">
-              <span>📅</span> Today's Schedule
+              <CalendarIcon className="w-5 h-5" /> Today's Schedule
             </h2>
             <div className="space-y-4">
               {todaysSchedule.map((item) => (
@@ -59,7 +63,7 @@ export default function Dashboard() {
 
           <div className="rounded-2xl bg-white border border-slate-200 p-6 animate-fadeUp" style={{ animationDelay: "80ms" }}>
             <h2 className="flex items-center gap-2 text-slate-800 font-bold text-lg mb-5">
-              <span>📋</span> Assignments
+              <DocumentIcon className="w-5 h-5" /> Assignments
             </h2>
             <div className="space-y-5">
               {dashboardAssignments.map((a) => (
