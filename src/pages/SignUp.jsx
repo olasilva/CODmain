@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const initialForm = { fullName: "", email: "", phone: "", password: "" };
@@ -7,6 +7,14 @@ export default function SignUp() {
   const location = useLocation();
   const navigate = useNavigate();
   const roleFromQuery = new URLSearchParams(location.search).get('role');
+  
+  // Redirect staff users to dedicated StaffSignUp page
+  useEffect(() => {
+    if (roleFromQuery === 'staff') {
+      navigate('/staff/signup', { replace: true });
+    }
+  }, [roleFromQuery, navigate]);
+  
   const [selectedRole, setSelectedRole] = useState(
     roleFromQuery === 'staff' ? 'staff' : 'student'
   );
