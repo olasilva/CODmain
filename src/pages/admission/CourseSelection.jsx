@@ -1,36 +1,38 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import BrandPanel from "../../components/BrandPanel";
-import { admissionTracks } from "../../data/admission";
 import { ArrowLeftIcon } from "../../components/Icons";
+import { CAMPUSES, PRICING, formatCurrency, planPriceTag } from "../../data/pricing";
 
 export default function CourseSelection() {
   const navigate = useNavigate();
-  const [trackId, setTrackId] = useState(null);
-  const [course, setCourse] = useState(null);
+  const [campusId, setCampusId] = useState(null);
+  const [planId, setPlanId] = useState(null);
 
-  const activeTrack = admissionTracks.find((t) => t.id === trackId);
-  const canProceed = Boolean(trackId && course);
+  const plans = campusId ? PRICING[campusId] : null;
+  const activePlan = campusId && planId ? plans[planId] : null;
+  const canProceed = Boolean(campusId && planId);
 
-  function selectTrack(id) {
-    setTrackId(id);
-    setCourse(null);
-    // A track with only one course (e.g. Mixed Track) selects itself.
-    const track = admissionTracks.find((t) => t.id === id);
-    if (track && track.courses.length === 1) {
-      setCourse(track.courses[0]);
-    }
+  function selectCampus(id) {
+    setCampusId(id);
+    setPlanId(null);
+    // A campus with only one plan (e.g. Wuye Center) selects itself.
+    const campusPlans = PRICING[id];
+    const planIds = Object.keys(campusPlans);
+    if (planIds.length === 1) setPlanId(planIds[0]);
   }
 
-  function selectCourse(id, courseName) {
-    setTrackId(id);
-    setCourse(courseName);
+  function selectPlan(id) {
+    setPlanId(id);
   }
 
   function handleProceed() {
     if (!canProceed) return;
-    navigate("/admission/apply", {
-      state: { trackName: activeTrack.name, course },
+    navigate("/admission/complete-application", {
+      // Payment.jsx reads PRICING[course][trackName], so course = campus,
+      // trackName = plan. Keeping this shape means CompleteApplication and
+      // Payment need no changes.
+      state: { trackName: planId, course: campusId },
     });
   }
 
@@ -48,73 +50,110 @@ export default function CourseSelection() {
         </Link>
 
         <div className="text-center mb-8 animate-fadeUp">
-          <h1 className="text-slate-800 text-3xl font-bold mb-2">Purchase Admission Form</h1>
-          <p className="text-slate-500">Select a track and course to purchase your admission form</p>
+          <h1 className="text-slate-800 text-3xl font-bold mb-2">Choose Your Programme</h1>
+          <p className="text-slate-500">Select a campus and a class plan to see your fees</p>
         </div>
 
-        <div className="space-y-6">
-          {admissionTracks.map((track, i) => {
-            const isActive = track.id === trackId;
+        {/* Step 1: Campus */}
+        <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-cod-pink">
+          <span className="h-2 w-2 rounded-full bg-cod-pink" />
+          Step 1 · Choose a campus
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4 mb-8">
+          {CAMPUSES.map((c) => {
+            const isActive = c.id === campusId;
             return (
-              <div
-                key={track.id}
-                style={{ animationDelay: `${i * 80}ms` }}
-                className={`opacity-0 animate-fadeUp rounded-2xl border overflow-hidden transition-all duration-300 ${
-                  isActive ? "border-transparent shadow-md" : "border-slate-200"
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => selectCampus(c.id)}
+                className={`focus-ring text-left rounded-2xl border-2 px-6 py-5 transition-all duration-200 ${
+                  isActive
+                    ? "border-transparent bg-cod-btn text-white shadow-md"
+                    : "border-slate-200 bg-white hover:border-cod-blue/40"
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => selectTrack(track.id)}
-                  className={`focus-ring w-full flex items-start gap-3 px-6 py-5 text-left transition-colors duration-300 ${
-                    isActive ? "bg-cod-btn" : "bg-gradient-to-r from-blue-50/60 to-pink-50/60 hover:from-blue-50 hover:to-pink-50"
-                  }`}
-                >
-                  <span
-                    className={`mt-0.5 h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
-                      isActive ? "border-white" : "border-cod-blue"
-                    }`}
-                  >
-                    {isActive && <span className="h-2 w-2 rounded-full bg-white" />}
-                  </span>
-                  <span>
-                    <span className={`block font-bold ${isActive ? "text-white" : "text-cod-blue"}`}>
-                      {track.name}
-                    </span>
-                    <span className={`block text-sm ${isActive ? "text-blue-50" : "text-slate-500"}`}>
-                      {track.description}
-                    </span>
-                  </span>
-                </button>
-
-                <div className={`px-6 py-4 flex flex-wrap gap-2.5 ${isActive ? "bg-white" : "bg-white"}`}>
-                  {track.courses.map((c) => {
-                    const isSelected = trackId === track.id && course === c;
-                    return (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => selectCourse(track.id, c)}
-                        className={`focus-ring rounded-full px-4 py-2 text-sm font-medium transition-all duration-150 ${
-                          isSelected
-                            ? "bg-cod-btn text-white shadow-sm"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                <span className={`block font-bold text-lg ${isActive ? "text-white" : "text-cod-blue"}`}>
+                  {c.name}
+                </span>
+                <span className={`block text-sm mt-1 ${isActive ? "text-blue-50" : "text-slate-500"}`}>
+                  {c.tagline}
+                </span>
+              </button>
             );
           })}
         </div>
 
+        {/* Step 2: Plan (with price tags) */}
+        {plans && (
+          <>
+            <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-cod-pink animate-fadeIn">
+              <span className="h-2 w-2 rounded-full bg-cod-pink" />
+              Step 2 · Choose a plan
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4 mb-8 animate-fadeIn">
+              {Object.entries(plans).map(([id, plan]) => {
+                const isSelected = planId === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => selectPlan(id)}
+                    className={`focus-ring text-left rounded-2xl border-2 px-6 py-5 transition-all duration-200 ${
+                      isSelected
+                        ? "border-cod-blue bg-blue-50 shadow-sm"
+                        : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-bold text-slate-800">{id}</span>
+                      {/* Price tag */}
+                      <span
+                        className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${
+                          isSelected ? "bg-cod-blue text-white" : "bg-slate-100 text-cod-blue"
+                        }`}
+                      >
+                        {planPriceTag(plan)}
+                      </span>
+                    </div>
+                    <span className="block text-sm text-slate-500 mt-1">{plan.description}</span>
+
+                    <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500">
+                      {plan.monthly && (
+                        <span>
+                          Monthly: <span className="font-semibold text-slate-700">{formatCurrency(plan.monthly)}</span>
+                        </span>
+                      )}
+                      {plan.termly && (
+                        <span>
+                          Termly: <span className="font-semibold text-slate-700">{formatCurrency(plan.termly)}</span>
+                        </span>
+                      )}
+                      {plan.daily && (
+                        <span>
+                          Daily: <span className="font-semibold text-slate-700">{formatCurrency(plan.daily)}</span>
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
         <div className="text-center mt-8">
           {canProceed && (
             <p className="text-sm text-slate-600 mb-4 animate-fadeIn">
-              Selected: <span className="font-semibold text-cod-blue">{course}</span> — {activeTrack.name}
+              Selected: <span className="font-semibold text-cod-blue">{planId}</span> — {campusId}
+              {activePlan?.monthly && (
+                <> · <span className="font-semibold text-cod-blue">{formatCurrency(activePlan.monthly)}</span>/mo</>
+              )}
+              {!activePlan?.monthly && activePlan?.daily && (
+                <> · <span className="font-semibold text-cod-blue">{formatCurrency(activePlan.daily)}</span>/session</>
+              )}
             </p>
           )}
           <button

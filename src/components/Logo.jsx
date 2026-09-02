@@ -1,16 +1,14 @@
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.jpg";
 
 /**
- * Drop your real crest/logo file at: src/assets/logo.png
- * (any image format works — just keep the filename "logo.png",
- * or update the import path above if you rename it)
+ * Shared academy crest used across the admission and dashboard layouts.
  */
 export default function Logo({ className = "h-16 w-16" }) {
   return (
     <img
       src={logo}
       alt="Clan of David Art and Music Academy crest"
-      className={`${className} object-contain rounded-xl bg-white shadow-md`}
+      className={`${className} object-contain rounded-xl bg-white p-1 shadow-md`}
     />
   );
 }

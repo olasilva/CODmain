@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import BrandPanel from "../../components/BrandPanel";
 import { ArrowLeftIcon } from "../../components/Icons";
+import { DocumentIcon } from "../../components/BoxIcons";
+import { COUNTRIES } from "../../data/countries";
 
 const initialForm = {
   studentName: "",
@@ -16,6 +18,8 @@ const initialForm = {
   medicalNotes: "",
 };
 
+const MAX_PHOTO_MB = 5;
+
 export default function CompleteApplication() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,9 +27,20 @@ export default function CompleteApplication() {
 
   const [form, setForm] = useState(initialForm);
   const [agreed, setAgreed] = useState(false);
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoError, setPhotoError] = useState("");
+
+  // Revoke the object URL when the photo changes or the component unmounts,
+  // so we don't leak memory.
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
 
   // Reached this page directly without going through course selection.
-  if (!trackName || !course) return <Navigate to="/admission" replace />;
+  if (!trackName || !course) return <Navigate to="/admission/course-selection" replace />;
 
   const requiredFilled =
     form.studentName && form.dob && form.gender &&
@@ -36,54 +51,139 @@ export default function CompleteApplication() {
     return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
   }
 
+  function handlePhotoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please choose an image file.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
+      setPhotoError(`Image must be under ${MAX_PHOTO_MB}MB.`);
+      return;
+    }
+
+    setPhotoError("");
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function removePhoto() {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(null);
+    setPhotoPreview(null);
+    setPhotoError("");
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit) return;
-    // TODO: send `form` + { trackName, course } to your backend / Supabase here.
-    navigate("/admission/submitted", {
+    // TODO: send `form` + `photo` (File) + { trackName, course } to your
+    // backend / Supabase here — e.g. upload `photo` to storage first, then
+    // save its URL alongside the rest of the form.
+    navigate("/payment", {
       state: {
-        studentFirstName: form.studentName.split(" ")[0] || form.studentName,
-        guardianEmail: form.guardianEmail,
-        programmeLabel: `${course} · ${trackName}`,
+        formData: form,
+        photo,
+        trackName,
+        course,
       },
     });
   }
 
   return (
-    <div className="min-h-screen w-full flex bg-cod-bg overflow-hidden">
+    <div className="min-h-screen w-full flex bg-[#f6f8fc] overflow-hidden">
       <BrandPanel />
 
-      <div className="flex-1 px-6 lg:px-16 py-10 md:py-14 pt-24 md:pt-14 max-w-3xl mx-auto w-full">
+      <main className="flex-1 min-w-0 px-5 sm:px-8 lg:px-12 py-8 md:py-12 pt-24 md:pt-12 overflow-y-auto">
+        <div className="max-w-5xl mx-auto">
         <Link
-          to="/admission"
-          className="focus-ring inline-flex items-center gap-1.5 text-cod-blue font-semibold text-sm mb-6 hover:text-cod-blue-dark transition-colors"
+          to="/admission/course-selection"
+          className="focus-ring inline-flex items-center gap-2 text-slate-500 font-semibold text-sm mb-8 hover:text-cod-blue transition-colors"
         >
           <ArrowLeftIcon className="h-4 w-4" />
-          Back
+          Change programme
         </Link>
 
-        <div className="text-center mb-6 animate-fadeUp">
-          <h1 className="text-slate-800 text-3xl font-bold mb-2">Complete Application</h1>
-          <p className="text-slate-500">Please fill in all required fields to complete your enrolment</p>
-        </div>
-
-        <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-pink-50 border border-slate-100 px-6 py-4 mb-6 flex items-center gap-3 animate-fadeUp">
-          <span className="h-9 w-9 rounded-full bg-cod-btn flex items-center justify-center shrink-0 text-white text-sm">◎</span>
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_280px] gap-8 items-start">
           <div>
-            <p className="text-slate-500 text-xs font-medium">Selected Programme</p>
-            <p className="text-cod-blue font-bold">
-              {course} · {trackName}
-            </p>
-          </div>
-        </div>
+            <div className="mb-7 animate-fadeUp">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-cod-pink mb-3">
+                <span className="h-2 w-2 rounded-full bg-cod-pink" />
+                Step 2 of 3
+              </div>
+              <h1 className="text-slate-900 text-3xl sm:text-4xl font-bold leading-tight mb-3">Complete your application</h1>
+              <p className="text-slate-500 max-w-xl leading-relaxed">Tell us a little more about the student. This information helps us prepare the right learning experience.</p>
+            </div>
 
-        <form onSubmit={handleSubmit} className="rounded-2xl bg-white border border-slate-200 px-6 md:px-8 py-8 space-y-8 animate-fadeUp">
+            <div className="rounded-2xl bg-white border border-slate-200/80 px-5 py-4 mb-6 flex items-center gap-4 shadow-sm animate-fadeUp">
+              <span className="h-11 w-11 rounded-xl bg-cod-btn flex items-center justify-center shrink-0 text-white">
+                <DocumentIcon className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider mb-1">Your selected programme</p>
+                <p className="text-cod-blue font-bold truncate">{course} <span className="text-slate-300 mx-1">/</span> {trackName}</p>
+              </div>
+              <span className="ml-auto hidden sm:inline-flex rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-xs font-bold">Selected</span>
+            </div>
+
+            <form onSubmit={handleSubmit} className="rounded-2xl bg-white border border-slate-200/80 px-5 sm:px-8 py-7 sm:py-9 space-y-9 shadow-sm animate-fadeUp">
           {/* Student information */}
           <section>
             <h2 className="text-cod-blue font-bold mb-1">Student Information</h2>
             <div className="h-px bg-slate-200 mb-5" />
 
             <div className="space-y-5">
+              {/* Photo upload */}
+              <div className="block">
+                <span className="block text-sm font-semibold text-slate-700 mb-1.5">Student Photo</span>
+                <div className="flex items-center gap-5">
+                  <div className="h-24 w-24 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                    {photoPreview ? (
+                      <img src={photoPreview} alt="Student preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <svg className="h-8 w-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" strokeLinecap="round" />
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3">
+                      <label className="focus-ring inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-cod-blue cursor-pointer hover:border-cod-blue/40 transition-colors">
+                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 16V4M12 4l-4 4M12 4l4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        {photo ? "Change photo" : "Upload photo"}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                        />
+                      </label>
+
+                      {photo && (
+                        <button
+                          type="button"
+                          onClick={removePhoto}
+                          className="focus-ring text-sm font-semibold text-slate-400 hover:text-red-500 transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">
+                      Passport-style photo, JPG or PNG, up to {MAX_PHOTO_MB}MB. Optional, but helps with ID and enrolment records.
+                    </p>
+                    {photoError && <p className="text-xs text-red-500 mt-1">{photoError}</p>}
+                  </div>
+                </div>
+              </div>
+
               <Field label="Student Full Name" required>
                 <input
                   required
@@ -115,12 +215,18 @@ export default function CompleteApplication() {
 
               <div className="grid sm:grid-cols-2 gap-5">
                 <Field label="Nationality">
-                  <input
+                  <select
                     value={form.nationality}
                     onChange={update("nationality")}
-                    placeholder="e.g. Nigerian"
                     className="field"
-                  />
+                  >
+                    <option value="" disabled>Select nationality</option>
+                    {COUNTRIES.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
                 <Field label="Previous School (if any)">
                   <input
@@ -222,10 +328,35 @@ export default function CompleteApplication() {
                 : "bg-cod-btn text-white/80 opacity-50 cursor-not-allowed"
             }`}
           >
-            Submit Application
+            Continue to Payment
           </button>
         </form>
-      </div>
+          </div>
+
+          <aside className="hidden lg:block rounded-2xl bg-cod-blue-deep text-white p-6 sticky top-8 animate-fadeUp">
+            <p className="text-cod-pink-light text-xs font-bold uppercase tracking-[0.16em] mb-4">Application guide</p>
+            <h2 className="text-xl font-bold leading-snug mb-6">Almost ready to join the academy.</h2>
+            <div className="space-y-5 text-sm">
+              <div className="flex gap-3">
+                <span className="h-6 w-6 rounded-full bg-white text-cod-blue flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                <p className="text-blue-100 leading-relaxed">Complete the student and guardian details.</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="h-6 w-6 rounded-full bg-cod-pink text-white flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                <p className="text-white leading-relaxed font-semibold">Review your information and pay the admission fee.</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="h-6 w-6 rounded-full border border-blue-300 text-blue-200 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                <p className="text-blue-200 leading-relaxed">Receive your confirmation by email.</p>
+              </div>
+            </div>
+            <div className="border-t border-white/15 mt-7 pt-5">
+              <p className="text-blue-200 text-xs leading-relaxed">Fields marked with <span className="text-cod-pink-light">*</span> are required.</p>
+            </div>
+          </aside>
+        </div>
+        </div>
+      </main>
     </div>
   );
 }

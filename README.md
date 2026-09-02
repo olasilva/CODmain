@@ -36,6 +36,12 @@ npm run dev       # local dev server
 npm run build      # production build → dist/
 ```
 
+## Deploying to Vercel
+
+Import this repository into Vercel. It will detect the Vite setup automatically,
+run `npm run build`, and serve the generated `dist/` directory. The included
+`vercel.json` keeps client-side routes such as `/payment` working on refresh.
+
 ## Design tokens
 
 Two token sets currently coexist in `tailwind.config.js`:

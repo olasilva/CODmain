@@ -1,5 +1,6 @@
 import { Link, Navigate, useLocation } from "react-router-dom";
 import BrandPanel from "../../components/BrandPanel";
+import { CheckCircleIcon } from "../../components/BoxIcons";
 
 export default function ApplicationSubmitted() {
   const location = useLocation();
@@ -14,9 +15,7 @@ export default function ApplicationSubmitted() {
       <div className="flex-1 flex items-center justify-center px-6 pt-24 md:pt-6">
         <div className="max-w-md w-full text-center animate-fadeUp">
           <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-cod-btn flex items-center justify-center animate-scaleIn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
+            <CheckCircleIcon className="h-7 w-7 text-white" />
           </div>
 
           <h1 className="text-slate-800 text-2xl font-bold mb-3">Application Submitted!</h1>

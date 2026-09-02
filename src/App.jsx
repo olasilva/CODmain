@@ -11,6 +11,7 @@ import CreateAccount from './pages/admission/createAccount'
 import CourseSelection from './pages/admission/CourseSelection'
 import CompleteApplication from './pages/admission/CompleteApplication'
 import ApplicationSubmitted from './pages/admission/ApplicationSubmitted'
+import Payment from './pages/payment'
 
 // Student Dashboard Imports
 import StudentDashboard from './pages/student/StudentDashboard'
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="/admission/create-account" element={<CreateAccount />} />
           <Route path="/admission/course-selection" element={<CourseSelection />} />
           <Route path="/admission/complete-application" element={<CompleteApplication />} />
+          <Route path="/payment" element={<Payment />} />
           <Route path="/admission/application-submitted" element={<ApplicationSubmitted />} />
           
           {/* Authentication */}

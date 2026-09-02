@@ -6,6 +6,8 @@ export default {
       colors: {
         cod: {
           blue: '#1D4ED8',
+          panel: '#1A73E8',
+          btn: '#1A73E8',
           'blue-dark': '#152B6B',
           'blue-deep': '#12224F',
           navy: '#0E1830',
