@@ -1,6 +1,6 @@
 import React from 'react';
 import StaffSidebar from './components/StaffSidebar';
-import StudentHeader from '../student/components/StudentHeader';
+import StudentHeader from '../student/components/Studentheader';
 
 const stats = [
   { label: 'Students', value: '1,284', accent: 'bg-blue-100 text-blue-700' },

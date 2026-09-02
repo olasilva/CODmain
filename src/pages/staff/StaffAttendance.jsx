@@ -1,6 +1,6 @@
 import React from 'react';
 import StaffSidebar from './components/StaffSidebar';
-import StudentHeader from '../student/components/StudentHeader';
+import StudentHeader from '../student/components/Studentheader';
 
 export default function StaffAttendance() {
   return (

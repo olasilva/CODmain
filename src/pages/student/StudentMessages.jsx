@@ -1,7 +1,7 @@
 // src/pages/student/StudentMessages.jsx
 import React, { useState } from 'react';
 import StudentSidebar from './components/StudentSidebar';
-import StudentHeader from './components/StudentHeader';
+import StudentHeader from './components/Studentheader';
 
 const conversations = [
   {

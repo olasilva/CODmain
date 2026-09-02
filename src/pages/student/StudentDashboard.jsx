@@ -1,7 +1,7 @@
 // src/pages/student/StudentDashboard.jsx
 import React from 'react';
 import StudentSidebar from './components/StudentSidebar';
-import StudentHeader from './components/StudentHeader';
+import StudentHeader from './components/Studentheader';
 import CourseCard from './components/CourseCard';
 
 const courses = [
