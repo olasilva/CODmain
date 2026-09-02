@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Loader from './components/Loader'
 import Home from './pages/Home'
 import MusicTrack from './pages/MusicTrack'
 import RegularTrack from './pages/RegularTrack'
@@ -45,8 +47,16 @@ import AdminStudentProfile from './pages/admin/AdminStudentprofile'
 import AdminStudentResults from './pages/admin/AdminStudentResults'
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIsLoading(false), 1200)
+    return () => window.clearTimeout(timer)
+  }, [])
+
   return (
     <BrowserRouter>
+      {isLoading && <Loader />}
       <div className="font-body">
         <Routes>
           {/* Main Pages */}
