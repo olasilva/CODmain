@@ -1,4 +1,5 @@
 import admissionImg from '../assets/IMG-20260710-WA0004.jpg'
+import { Link } from 'react-router-dom'
 
 export default function ApplyAdmission() {
   return (
@@ -15,12 +16,12 @@ export default function ApplyAdmission() {
             skills, nurtures creativity, and builds a strong foundation for
             academic excellence.
           </p>
-          <a
-            href="#contact"
+          <Link
+            to="/admission/course-selection"
             className="mt-7 inline-block bg-cod-pink text-white font-semibold px-8 py-3.5 rounded-full shadow-lg hover:bg-pink-600 transition-colors"
           >
             Enroll now
-          </a>
+          </Link>
         </div>
 
         <img
