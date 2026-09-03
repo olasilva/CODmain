@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { submitContactMessage } from "../lib/api";
 
 // Replace with the academy's real contact details.
 const details = [
@@ -11,11 +12,21 @@ const details = [
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    // Wire this up to your form backend / email service / Google Sheets, etc.
-    setSubmitted(true);
+    const data = new FormData(e.currentTarget);
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await submitContactMessage({ name: data.get("name"), email: data.get("email"), message: data.get("message") });
+      setSubmitted(true);
+    } catch (submitError) {
+      setError(submitError.message || "Message could not be sent.");
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -55,6 +66,7 @@ export default function Contact() {
                 </label>
                 <input
                   id="name"
+                  name="name"
                   type="text"
                   required
                   className="focus-ring w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400"
@@ -67,6 +79,7 @@ export default function Contact() {
                 </label>
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   required
                   className="focus-ring w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400"
@@ -79,18 +92,20 @@ export default function Contact() {
                 </label>
                 <textarea
                   id="message"
+                  name="message"
                   required
                   rows={5}
                   className="focus-ring w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 resize-none"
                   placeholder="How can we help?"
                 />
               </div>
+              {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
               <button
                 type="submit"
                 className="focus-ring w-full rounded-full bg-cod-btn text-white font-semibold py-3.5 shadow-md
                            transition-all duration-200 hover:shadow-lg hover:brightness-105 active:scale-[0.98]"
               >
-                Send Message
+                {isSubmitting ? "Sending..." : "Send Message"}
               </button>
             </form>
           )}

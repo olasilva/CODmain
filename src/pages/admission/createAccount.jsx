@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import { registerUser } from '../../lib/api';
 
 export default function CreateAccount() {
   const navigate = useNavigate();
@@ -12,6 +13,8 @@ export default function CreateAccount() {
     phone: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,11 +24,17 @@ export default function CreateAccount() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Navigate to next step
-    navigate('/admission/course-selection');
+    setError('');
+    setIsSubmitting(true);
+    try {
+      await registerUser({ ...formData, role: 'student' });
+      navigate('/admission/course-selection');
+    } catch (submitError) {
+      setError(submitError.message);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,6 +63,8 @@ export default function CreateAccount() {
               Step 1: Basic information
             </p>
           </div>
+
+          {error && <p className="mb-4 text-sm text-red-600" role="alert">{error}</p>}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">

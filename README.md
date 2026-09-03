@@ -36,6 +36,20 @@ npm run dev       # local dev server
 npm run build      # production build → dist/
 ```
 
+## Backend integration
+
+The frontend uses `src/lib/api.js` for authentication, admission applications,
+payments, contact messages, and newsletter subscriptions. Without configuration
+it persists demo data in browser storage so every flow works locally. Set
+`VITE_API_URL` in the deployment environment to use a real backend instead.
+
+The backend should provide JSON endpoints for `POST /auth/register`,
+`POST /auth/login`, `POST /applications`, `POST /payments`, `POST /contact`, and
+`POST /newsletter`. Login should return `{ id, fullName, email, role }`; payment
+should return `{ transactionId, paidAt }`. The current local payment adapter is
+only a development stub and must be replaced by server-side gateway/webhook
+verification before accepting real money.
+
 ## Deploying to Vercel
 
 Import this repository into Vercel. It will detect the Vite setup automatically,

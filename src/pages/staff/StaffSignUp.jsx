@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { registerUser } from "../../lib/api";
 
 const initialForm = { 
   fullName: "", 
@@ -232,9 +233,9 @@ export default function StaffSignUp() {
                   <h2 className="text-2xl font-bold text-black font-ebrima mb-6">Confirm & Submit</h2>
                 </div>
 
-                <form onSubmit={(e) => {
+                <form onSubmit={async (e) => {
                   e.preventDefault();
-                  console.log("Staff signup:", form);
+                  await registerUser({ ...form, role: "staff" });
                   navigate('/login?role=staff');
                 }} className="space-y-6">
                   <div className="bg-gradient-to-br from-[#1A73E8]/5 to-[#FF2E96]/5 rounded-2xl border-2 border-[#1A73E8]/20 p-6 space-y-4 animate-scaleIn">

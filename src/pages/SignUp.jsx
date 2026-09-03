@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { registerUser } from "../lib/api";
 
 const initialForm = { fullName: "", email: "", phone: "", password: "" };
 
@@ -171,12 +172,21 @@ function StepIndicator({ step }) {
 function Step2({ form, onBack, selectedRole }) {
   const navigate = useNavigate();
   const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!agreed) return;
-    console.log("signup", form);
-    navigate(`/login?role=${selectedRole}`);
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await registerUser({ ...form, role: selectedRole });
+      navigate(`/login?role=${selectedRole}`);
+    } catch (signupError) {
+      setError(signupError.message);
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -185,6 +195,7 @@ function Step2({ form, onBack, selectedRole }) {
       <p className="text-slate-500 mb-8">Step 2: Confirm &amp; agree</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
         <div className="rounded-xl bg-slate-50 border border-slate-200 px-5 py-4 space-y-2 text-sm">
           <SummaryRow label="Name" value={form.fullName} />
           <SummaryRow label="Email" value={form.email} />
@@ -221,7 +232,7 @@ function Step2({ form, onBack, selectedRole }) {
                 : "bg-cod-btn text-white/80 opacity-50 cursor-not-allowed"
             }`}
           >
-            Create Account
+            {isSubmitting ? "Creating account..." : "Create Account"}
           </button>
         </div>
       </form>

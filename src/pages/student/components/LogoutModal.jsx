@@ -1,6 +1,7 @@
 // src/pages/student/components/LogoutModal.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '../../../lib/api';
 
 export default function LogoutModal({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -8,9 +9,7 @@ export default function LogoutModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const handleLogout = () => {
-    // Add logout logic here (clear tokens, etc.)
-    console.log('Logging out...');
-    // Navigate to login page
+    logoutUser();
     navigate('/login');
   };
 

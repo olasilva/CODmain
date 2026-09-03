@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logoutUser } from '../../../lib/api';
 
 export default function StaffLogoutModal({ isOpen, onClose }) {
   const navigate = useNavigate();
@@ -7,7 +8,7 @@ export default function StaffLogoutModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const handleLogout = () => {
-    console.log('Logging out staff...');
+    logoutUser();
     navigate('/login?role=staff');
   };
 

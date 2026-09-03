@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import logo from '../assets/logo.jpg';
+import { loginUser } from '../lib/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,6 +17,8 @@ export default function Login() {
     email: '',
     password: ''
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,16 +28,17 @@ export default function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData, 'Role:', selectedRole);
-
-    if (selectedRole === 'staff') {
-      navigate('/staff/dashboard');
-      return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const session = await loginUser({ ...formData, role: selectedRole });
+      navigate(session.role === 'staff' ? '/staff/dashboard' : '/student/dashboard');
+    } catch (loginError) {
+      setError(loginError.message);
+      setIsSubmitting(false);
     }
-
-    navigate('/student/dashboard');
   };
 
   const handleGoogleLogin = () => {
@@ -126,6 +130,8 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
+
+            {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
             <button
               type="submit"

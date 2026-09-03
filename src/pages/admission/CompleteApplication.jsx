@@ -4,6 +4,7 @@ import BrandPanel from "../../components/BrandPanel";
 import { ArrowLeftIcon } from "../../components/Icons";
 import { DocumentIcon } from "../../components/BoxIcons";
 import { COUNTRIES } from "../../data/countries";
+import { createApplication } from "../../lib/api";
 
 const initialForm = {
   studentName: "",
@@ -30,6 +31,8 @@ export default function CompleteApplication() {
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [photoError, setPhotoError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Revoke the object URL when the photo changes or the component unmounts,
   // so we don't leak memory.
@@ -77,20 +80,18 @@ export default function CompleteApplication() {
     setPhotoError("");
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!canSubmit) return;
-    // TODO: send `form` + `photo` (File) + { trackName, course } to your
-    // backend / Supabase here — e.g. upload `photo` to storage first, then
-    // save its URL alongside the rest of the form.
-    navigate("/payment", {
-      state: {
-        formData: form,
-        photo,
-        trackName,
-        course,
-      },
-    });
+    setIsSubmitting(true);
+    setSubmitError("");
+    try {
+      const application = await createApplication({ ...form, trackName, course, photoName: photo?.name || null });
+      navigate("/payment", { state: { applicationId: application.id, formData: form, trackName, course } });
+    } catch (error) {
+      setSubmitError(error.message || "We could not save your application. Please try again.");
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -318,6 +319,8 @@ export default function CompleteApplication() {
               I agree to the terms and conditions of Clan of David Art and Music Academy.
             </span>
           </label>
+
+          {submitError && <p className="text-sm text-red-600" role="alert">{submitError}</p>}
 
           <button
             type="submit"

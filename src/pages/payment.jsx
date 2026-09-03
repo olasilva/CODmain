@@ -5,6 +5,7 @@ import BrandPanel from "../components/BrandPanel";
 import { ArrowLeftIcon } from "../components/Icons";
 import { BankIcon, PaymentsIcon, PhoneIcon } from "../components/BoxIcons";
 import { PRICING } from "../data/pricing";
+import { recordPayment } from "../lib/api";
 
 // Payment methods
 const PAYMENT_METHODS = [
@@ -16,7 +17,7 @@ const PAYMENT_METHODS = [
 export default function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { course, trackName, formData } = location.state || {};
+  const { course, trackName, formData, applicationId } = location.state || {};
 
   // Redirect if no course/track selected
   if (!trackName || !course) return <Navigate to="/admission/course-selection" replace />;
@@ -24,6 +25,7 @@ export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState("bank");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   // Get pricing for the selected course/track
   const pricing = PRICING[course]?.[trackName] || null;
@@ -62,31 +64,23 @@ export default function Payment() {
 
     setPaymentProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
+    setPaymentError("");
+    try {
+      const payment = await recordPayment({ applicationId, paymentMethod, amountPaid: amountToPay, plan: selectedPlan });
       setPaymentProcessing(false);
       setPaymentComplete(true);
-
-      // After payment, navigate to success page
-      setTimeout(() => {
-        navigate("/admission/application-submitted", {
-          state: {
-            studentFirstName: formData?.studentName?.split(" ")[0] || "Student",
-            guardianEmail: formData?.guardianEmail || "",
-            programmeLabel: `${course} · ${trackName}`,
-            paymentMethod: paymentMethod,
-            amountPaid: amountToPay,
-            plan: selectedPlan,
-            transactionId: `COD-${Date.now().toString().slice(-8)}`,
-            paymentDate: new Date().toLocaleDateString('en-NG', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })
-          },
-        });
-      }, 1000);
-    }, 2000);
+      navigate("/admission/application-submitted", { state: {
+        studentFirstName: formData?.studentName?.split(" ")[0] || "Student",
+        guardianEmail: formData?.guardianEmail || "",
+        programmeLabel: `${course} · ${trackName}`,
+        paymentMethod, amountPaid: amountToPay, plan: selectedPlan,
+        transactionId: payment.transactionId,
+        paymentDate: new Date(payment.paidAt).toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" }),
+      } });
+    } catch (error) {
+      setPaymentProcessing(false);
+      setPaymentError(error.message || "Payment could not be completed. Please try again.");
+    }
   };
 
   if (paymentComplete) {
@@ -314,6 +308,7 @@ export default function Payment() {
           )}
 
           {/* Payment Button */}
+          {paymentError && <p className="text-sm text-red-600" role="alert">{paymentError}</p>}
           <button
             type="submit"
             disabled={amountToPay <= 0 || paymentProcessing}

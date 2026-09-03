@@ -14,6 +14,13 @@ import CourseSelection from './pages/admission/CourseSelection'
 import CompleteApplication from './pages/admission/CompleteApplication'
 import ApplicationSubmitted from './pages/admission/ApplicationSubmitted'
 import Payment from './pages/payment'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import News from './pages/News'
+import NewsPost from './pages/NewsPost'
+import Programmes from './pages/Programmes'
+import Welcome from './pages/Welcome'
+import Placeholder from './pages/Placeholder'
 
 // Student Dashboard Imports
 import StudentDashboard from './pages/student/StudentDashboard'
@@ -61,6 +68,15 @@ export default function App() {
         <Routes>
           {/* Main Pages */}
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:slug" element={<NewsPost />} />
+          <Route path="/programmes" element={<Programmes />} />
+          <Route path="/admission" element={<Application />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/forgot-password" element={<Placeholder title="Forgot password" body="Password recovery is coming soon. Please contact the academy for help signing in." />} />
+          <Route path="/terms" element={<Placeholder title="Terms and conditions" body="Our terms and conditions are being prepared. Please contact the academy for current details." />} />
           
           {/* Programme Pages */}
           <Route path="/programmes/music-track" element={<MusicTrack />} />
@@ -87,6 +103,7 @@ export default function App() {
           <Route path="/student/courses" element={<StudentCourses />} />
           <Route path="/student/classes" element={<StudentClasses />} />
           <Route path="/student/assignments" element={<StudentAssignments />} />
+          <Route path="/dashboard/assignments" element={<StudentAssignments />} />
           <Route path="/student/results" element={<StudentResults />} />
           <Route path="/student/messages" element={<StudentMessages />} />
           <Route path="/student/notifications" element={<StudentNotifications />} />

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { categories, posts, formatDate } from "../data/news";
+import { subscribeToNewsletter } from "../lib/api";
 
 function PostCard({ post, index }) {
   return (
@@ -46,11 +47,25 @@ function PostCard({ post, index }) {
 
 export default function News() {
   const [active, setActive] = useState("All");
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+  const [newsletterError, setNewsletterError] = useState("");
 
   const visible = useMemo(
     () => (active === "All" ? posts : posts.filter((p) => p.category === active)),
     [active]
   );
+
+  async function handleSubscribe(event) {
+    event.preventDefault();
+    setNewsletterError("");
+    try {
+      await subscribeToNewsletter(email);
+      setSubscribed(true);
+    } catch (error) {
+      setNewsletterError(error.message || "Subscription could not be completed.");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-cod-bg">
@@ -111,18 +126,17 @@ export default function News() {
             <h2 className="text-white text-2xl font-bold mb-1">Stay In The Loop</h2>
             <p className="text-blue-100 text-sm">Subscribe to our newsletter for the latest news and updates.</p>
           </div>
-          <form
-            onSubmit={(e) => e.preventDefault()} // wire this up to your mailing list provider
-            className="flex w-full md:w-auto"
-          >
+          <form onSubmit={handleSubscribe} className="flex w-full md:w-auto gap-2">
+            <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Your email address" aria-label="Email address" className="min-w-0 flex-1 rounded-full px-4 py-3 text-sm" />
             <button
               type="submit"
               className="focus-ring shrink-0 rounded-full bg-cod-btn text-white font-semibold px-8 py-3 shadow-md
                          transition-all duration-200 hover:shadow-lg hover:brightness-105 active:scale-[0.98]"
             >
-              Subscribe
+              {subscribed ? "Subscribed" : "Subscribe"}
             </button>
           </form>
+          {newsletterError && <p className="text-sm text-red-100 mt-2">{newsletterError}</p>}
         </div>
       </div>
 
