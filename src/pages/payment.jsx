@@ -1,30 +1,21 @@
 // src/pages/Payment.jsx
 import { useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import BrandPanel from "../components/BrandPanel";
 import { ArrowLeftIcon } from "../components/Icons";
-import { BankIcon, PaymentsIcon, PhoneIcon } from "../components/BoxIcons";
 import { PRICING } from "../data/pricing";
-import { recordPayment } from "../lib/api";
-
-// Payment methods
-const PAYMENT_METHODS = [
-  { id: "bank", label: "Bank Transfer", icon: BankIcon },
-  { id: "card", label: "Card Payment", icon: PaymentsIcon },
-  { id: "ussd", label: "USSD", icon: PhoneIcon },
-];
+import { initializePayment } from "../lib/api";
 
 export default function Payment() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { course, trackName, formData, applicationId } = location.state || {};
 
   // Redirect if no course/track selected
-  if (!trackName || !course) return <Navigate to="/admission/course-selection" replace />;
+  if (!trackName || !course) {
+    return <Navigate to="/admission/course-selection" replace />;
+  }
 
-  const [paymentMethod, setPaymentMethod] = useState("bank");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [paymentComplete, setPaymentComplete] = useState(false);
   const [paymentError, setPaymentError] = useState("");
 
   // Get pricing for the selected course/track
@@ -33,12 +24,10 @@ export default function Payment() {
   const termlyFee = pricing?.termly || 0;
   const dailyFee = pricing?.daily || 0;
 
-  // Determine available payment plans
   const hasMonthly = monthlyFee > 0;
   const hasTermly = termlyFee > 0;
   const hasDaily = dailyFee > 0;
 
-  // Default plan selection
   const [selectedPlan, setSelectedPlan] = useState(() => {
     if (hasTermly) return "termly";
     if (hasMonthly) return "monthly";
@@ -46,13 +35,16 @@ export default function Payment() {
     return "monthly";
   });
 
-  // Calculate amount based on selected plan
   const getAmount = () => {
-    switch(selectedPlan) {
-      case "monthly": return monthlyFee;
-      case "termly": return termlyFee;
-      case "daily": return dailyFee;
-      default: return 0;
+    switch (selectedPlan) {
+      case "monthly":
+        return monthlyFee;
+      case "termly":
+        return termlyFee;
+      case "daily":
+        return dailyFee;
+      default:
+        return 0;
     }
   };
 
@@ -63,40 +55,34 @@ export default function Payment() {
     if (amountToPay <= 0) return;
 
     setPaymentProcessing(true);
-
     setPaymentError("");
+
     try {
-      const payment = await recordPayment({ applicationId, paymentMethod, amountPaid: amountToPay, plan: selectedPlan });
-      setPaymentProcessing(false);
-      setPaymentComplete(true);
-      navigate("/admission/application-submitted", { state: {
-        studentFirstName: formData?.studentName?.split(" ")[0] || "Student",
-        guardianEmail: formData?.guardianEmail || "",
-        programmeLabel: `${course} · ${trackName}`,
-        paymentMethod, amountPaid: amountToPay, plan: selectedPlan,
-        transactionId: payment.transactionId,
-        paymentDate: new Date(payment.paidAt).toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" }),
-      } });
+      const result = await initializePayment({
+        amount: amountToPay,
+        email: formData?.guardianEmail || "",
+        course,
+        trackName,
+        plan: selectedPlan,
+        studentName: formData?.studentName || "",
+        applicationId: applicationId || null,
+      });
+
+      if (!result?.authorization_url) {
+        throw new Error("Payment gateway did not return a checkout URL");
+      }
+
+      // Redirect the browser to Paystack's hosted checkout.
+      // Paystack will redirect back to /api/payments/verify?reference=... on completion,
+      // and the backend forwards the user to /admission/submitted.
+      window.location.href = result.authorization_url;
     } catch (error) {
       setPaymentProcessing(false);
-      setPaymentError(error.message || "Payment could not be completed. Please try again.");
+      setPaymentError(
+        error.message || "Payment could not be completed. Please try again."
+      );
     }
   };
-
-  if (paymentComplete) {
-    return (
-      <div className="min-h-screen w-full flex bg-cod-bg overflow-hidden">
-        <BrandPanel />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="text-center">
-            <div className="text-6xl mb-4">✅</div>
-            <h2 className="text-2xl font-bold text-green-600">Payment Successful!</h2>
-            <p className="text-slate-600 mt-2">Redirecting to confirmation...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen w-full flex bg-cod-bg overflow-hidden">
@@ -114,10 +100,15 @@ export default function Payment() {
 
         <div className="text-center mb-6 animate-fadeUp">
           <h1 className="text-slate-800 text-3xl font-bold mb-2">Payment</h1>
-          <p className="text-slate-500">Complete your enrollment by making payment</p>
+          <p className="text-slate-500">
+            Complete your enrollment by making payment
+          </p>
         </div>
 
-        <form onSubmit={handlePayment} className="rounded-2xl bg-white border border-slate-200 px-6 md:px-8 py-8 space-y-8 animate-fadeUp">
+        <form
+          onSubmit={handlePayment}
+          className="rounded-2xl bg-white border border-slate-200 px-6 md:px-8 py-8 space-y-8 animate-fadeUp"
+        >
           {/* Programme Summary */}
           <section>
             <h2 className="text-cod-blue font-bold mb-1">Programme Summary</h2>
@@ -135,13 +126,17 @@ export default function Payment() {
               {pricing?.description && (
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Schedule</span>
-                  <span className="font-medium text-slate-800">{pricing.description}</span>
+                  <span className="font-medium text-slate-800">
+                    {pricing.description}
+                  </span>
                 </div>
               )}
               {formData?.studentName && (
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Student</span>
-                  <span className="font-semibold text-slate-800">{formData.studentName}</span>
+                  <span className="font-semibold text-slate-800">
+                    {formData.studentName}
+                  </span>
                 </div>
               )}
             </div>
@@ -152,7 +147,6 @@ export default function Payment() {
             <h2 className="text-cod-blue font-bold mb-1">Fee Structure</h2>
             <div className="h-px bg-slate-200 mb-5" />
 
-            {/* Payment Plan Options */}
             {(hasMonthly || hasTermly || hasDaily) && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                 {hasMonthly && (
@@ -165,12 +159,16 @@ export default function Payment() {
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <div className="text-xs text-slate-500 font-medium">Monthly</div>
-                    <div className="text-xl font-bold text-cod-blue">₦{monthlyFee.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500 font-medium">
+                      Monthly
+                    </div>
+                    <div className="text-xl font-bold text-cod-blue">
+                      ₦{monthlyFee.toLocaleString()}
+                    </div>
                     <div className="text-xs text-slate-400">per month</div>
                   </button>
                 )}
-                
+
                 {hasTermly && (
                   <button
                     type="button"
@@ -181,12 +179,17 @@ export default function Payment() {
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <div className="text-xs text-slate-500 font-medium">Termly</div>
-                    <div className="text-xl font-bold text-cod-blue">₦{termlyFee.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500 font-medium">
+                      Termly
+                    </div>
+                    <div className="text-xl font-bold text-cod-blue">
+                      ₦{termlyFee.toLocaleString()}
+                    </div>
                     <div className="text-xs text-slate-400">3 months</div>
                     {hasMonthly && monthlyFee * 3 > termlyFee && (
                       <div className="text-xs text-green-600 font-semibold mt-1">
-                        Save ₦{(monthlyFee * 3 - termlyFee).toLocaleString()}
+                        Save ₦
+                        {(monthlyFee * 3 - termlyFee).toLocaleString()}
                       </div>
                     )}
                   </button>
@@ -202,113 +205,65 @@ export default function Payment() {
                         : "border-slate-200 hover:border-slate-300"
                     }`}
                   >
-                    <div className="text-xs text-slate-500 font-medium">Daily</div>
-                    <div className="text-xl font-bold text-cod-blue">₦{dailyFee.toLocaleString()}</div>
+                    <div className="text-xs text-slate-500 font-medium">
+                      Daily
+                    </div>
+                    <div className="text-xl font-bold text-cod-blue">
+                      ₦{dailyFee.toLocaleString()}
+                    </div>
                     <div className="text-xs text-slate-400">per session</div>
                   </button>
                 )}
               </div>
             )}
 
-            {/* Only show if no payment plans available (fallback) */}
             {!hasMonthly && !hasTermly && !hasDaily && (
               <div className="text-center py-4">
-                <div className="text-xl font-bold text-cod-blue">₦{amountToPay.toLocaleString()}</div>
+                <div className="text-xl font-bold text-cod-blue">
+                  ₦{amountToPay.toLocaleString()}
+                </div>
                 <div className="text-sm text-slate-600">Fee</div>
               </div>
             )}
 
             <div className="rounded-xl bg-gradient-to-r from-blue-50 to-pink-50 p-4 flex justify-between items-center">
               <span className="font-semibold">Total Amount</span>
-              <span className="text-2xl font-bold text-cod-blue">₦{amountToPay.toLocaleString()}</span>
+              <span className="text-2xl font-bold text-cod-blue">
+                ₦{amountToPay.toLocaleString()}
+              </span>
             </div>
           </section>
 
-          {/* Payment Method */}
+          {/* How You'll Pay */}
           <section>
-            <h2 className="text-cod-blue font-bold mb-1">Payment Method</h2>
+            <h2 className="text-cod-blue font-bold mb-1">Payment Options</h2>
             <div className="h-px bg-slate-200 mb-5" />
 
-            <div className="grid grid-cols-3 gap-3">
-              {PAYMENT_METHODS.map((method) => (
-                <button
-                  key={method.id}
-                  type="button"
-                  onClick={() => setPaymentMethod(method.id)}
-                  className={`p-3 rounded-xl border-2 text-center transition-all ${
-                    paymentMethod === method.id
-                      ? "border-cod-blue bg-blue-50"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <method.icon className="h-6 w-6 mx-auto text-cod-blue" />
-                  <div className="text-xs font-medium mt-1">{method.label}</div>
-                </button>
-              ))}
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-2">
+              <p className="text-sm text-slate-700">
+                You'll be redirected to{" "}
+                <span className="font-semibold text-cod-blue">Paystack</span>'s
+                secure checkout where you can pay with:
+              </p>
+              <ul className="text-sm text-slate-600 space-y-1 pl-1">
+                <li>💳 Debit or credit card</li>
+                <li>🏦 Bank transfer</li>
+                <li>📱 USSD</li>
+                <li>🔐 Paystack account</li>
+              </ul>
+              <p className="text-xs text-slate-500 pt-2 border-t border-slate-200">
+                🔒 All payments are processed securely by Paystack. Clan of
+                David Academy does not store your card details.
+              </p>
             </div>
           </section>
 
-          {/* Bank Transfer Details (conditional) */}
-          {paymentMethod === "bank" && (
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
-              <h4 className="font-semibold text-sm mb-2">Bank Transfer Details</h4>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Bank</span>
-                  <span className="font-medium">Zenith Bank</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Account Number</span>
-                  <span className="font-medium text-cod-blue font-bold">1219258176</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Account Name</span>
-                  <span className="font-medium">Clan of David Art and Music Academy</span>
-                </div>
-                <div className="flex justify-between pt-2 border-t border-slate-200">
-                  <span className="text-slate-600 font-semibold">Amount to Pay</span>
-                  <span className="font-bold text-cod-blue text-lg">₦{amountToPay.toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-xs text-blue-700">
-                  <span className="font-semibold">Important:</span> Use the student's name as payment reference. 
-                  After transfer, click the "Confirm Payment" button below.
-                </p>
-              </div>
-            </div>
+          {paymentError && (
+            <p className="text-sm text-red-600" role="alert">
+              {paymentError}
+            </p>
           )}
 
-          {/* Card Payment Info (conditional) */}
-          {paymentMethod === "card" && (
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
-              <h4 className="font-semibold text-sm mb-2">Card Payment</h4>
-              <p className="text-sm text-slate-600">
-                You will be redirected to our secure payment gateway to complete your card payment.
-              </p>
-              <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                <span>🔒 Secure</span>
-                <span>💳 All major cards accepted</span>
-              </div>
-            </div>
-          )}
-
-          {/* USSD Info (conditional) */}
-          {paymentMethod === "ussd" && (
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
-              <h4 className="font-semibold text-sm mb-2">USSD Payment</h4>
-              <p className="text-sm text-slate-600">
-                Dial <span className="font-bold">*901#</span> or your bank's USSD code and follow the prompts.
-              </p>
-              <div className="mt-2 text-xs text-slate-500">
-                <p>Amount: <span className="font-semibold text-cod-blue">₦{amountToPay.toLocaleString()}</span></p>
-                <p>Reference: <span className="font-mono">COD-{Date.now().toString().slice(-8)}</span></p>
-              </div>
-            </div>
-          )}
-
-          {/* Payment Button */}
-          {paymentError && <p className="text-sm text-red-600" role="alert">{paymentError}</p>}
           <button
             type="submit"
             disabled={amountToPay <= 0 || paymentProcessing}
@@ -320,11 +275,27 @@ export default function Payment() {
           >
             {paymentProcessing ? (
               <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
-                Processing Payment...
+                Redirecting to Paystack...
               </span>
             ) : (
               `Pay ₦${amountToPay.toLocaleString()}`
@@ -332,7 +303,8 @@ export default function Payment() {
           </button>
 
           <p className="text-center text-xs text-slate-400">
-            By proceeding, you agree to our terms and conditions. Payment is non-refundable.
+            By proceeding, you agree to our terms and conditions. Payment is
+            non-refundable.
           </p>
         </form>
       </div>
