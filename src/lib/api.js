@@ -366,6 +366,12 @@ export async function createStaffAccount(data) {
   });
 }
 
+// Admin — staff list
+export async function getAdminStaff(params = {}) {
+  const qs = new URLSearchParams(params).toString();
+  return request(`/admin/staff${qs ? "?" + qs : ""}`);
+}
+
 // Admin — payments
 export async function getAdminPayments(params = {}) {
   const qs = new URLSearchParams(params).toString();
@@ -565,12 +571,9 @@ export default {
   updateAdminProgramme,
   deleteAdminProgramme,
   createStaffAccount,
-
-  // Admin — payments & reports
+  getAdminStaff,
   getAdminPayments,
   getAdminReports,
-
-  // Admin — report cards
   getStudentReportCards,
   getReportCard,
   saveReportCard,
