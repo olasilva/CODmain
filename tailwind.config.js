@@ -1,38 +1,74 @@
+// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        cod: {
-          blue: '#1D4ED8',
-          panel: '#1A73E8',
-          btn: '#1A73E8',
-          'blue-dark': '#152B6B',
-          'blue-deep': '#12224F',
-          navy: '#0E1830',
-          pink: '#EC4899',
-          'pink-light': '#F472B6',
-          lavender: '#F3EEFB',
-          'lavender-deep': '#EDE4FB',
-          // Exact brand tokens pulled from the Figma source (use these for
-          // any screen built from Figma going forward — see README).
-          'brand-navy': '#0F4082',
-          'brand-blue': '#1A73E8',
-          'brand-pink': '#FF2E96',
-          'brand-green': '#34A853',
-        },
+        'cod-bg': '#F5F9FF',
+        'cod-blue': '#1A73E8',
+        'cod-blue-dark': '#0F4082',
+        'cod-blue-deep': '#0A2D5C',
+        'cod-pink': '#FF2E96',
+        'cod-lavender': '#E8F0FB',
+        'cod-lavender-deep': '#D6E4F7',
+        'cod-btn': '#1A73E8',
       },
       fontFamily: {
-        display: ['"Poppins"', 'sans-serif'],
-        body: ['"Inter"', 'sans-serif'],
-        // Figma source uses Ebrima (a Microsoft system font, not on Google
-        // Fonts). Falls back to Segoe UI / system sans where unavailable.
-        figma: ['"Ebrima"', '"Segoe UI"', 'ui-sans-serif', 'sans-serif'],
+        display: ['Poppins', 'sans-serif'],
+        ebrima: ['Ebrima', 'sans-serif'],
       },
       backgroundImage: {
-        'cod-gradient': 'linear-gradient(135deg, #1D4ED8 0%, #7C3AED 55%, #EC4899 100%)',
-        'cod-gradient-soft': 'linear-gradient(135deg, #EEF2FF 0%, #FCE7F3 100%)',
+        'cod-gradient': 'linear-gradient(90deg, #1A73E8 0%, #FF2E96 100%)',
+      },
+      animation: {
+        fadeUp: 'fadeUp 0.6s ease-out both',
+        fadeIn: 'fadeIn 0.6s ease-out both',
+        slideDown: 'slideDown 0.5s ease-out both',
+        slideInLeft: 'slideInLeft 0.6s ease-out both',
+        slideInRight: 'slideInRight 0.6s ease-out both',
+        slideUp: 'slideUp 0.5s ease-out both',
+        scaleIn: 'scaleIn 0.5s ease-out both',
+        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        bounce: 'bounce 1s ease-in-out infinite',
+      },
+      keyframes: {
+        fadeUp: {
+          '0%': { opacity: 0, transform: 'translateY(20px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
+        fadeIn: {
+          '0%': { opacity: 0 },
+          '100%': { opacity: 1 },
+        },
+        slideDown: {
+          '0%': { opacity: 0, transform: 'translateY(-20px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
+        slideInLeft: {
+          '0%': { opacity: 0, transform: 'translateX(-30px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' },
+        },
+        slideInRight: {
+          '0%': { opacity: 0, transform: 'translateX(30px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' },
+        },
+        slideUp: {
+          '0%': { opacity: 0, transform: 'translateY(15px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' },
+        },
+        scaleIn: {
+          '0%': { opacity: 0, transform: 'scale(0.95)' },
+          '100%': { opacity: 1, transform: 'scale(1)' },
+        },
+        pulse: {
+          '0%, 100%': { opacity: 1 },
+          '50%': { opacity: 0.5 },
+        },
+        bounce: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
     },
   },

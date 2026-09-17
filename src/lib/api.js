@@ -1,8 +1,9 @@
 // src/lib/api.js
-const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:5000/api";
+const API_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
+  "http://localhost:5000/api";
+
 const STORAGE_KEY = "cod-academy-store";
-const SESSION_KEY = "cod-academy-session";
-const TOKEN_KEY = "cod-academy-token";
 
 // ============ STORAGE HELPERS ============
 
@@ -16,7 +17,13 @@ function readStore() {
       subscribers: [],
     };
   } catch {
-    return { users: [], applications: [], payments: [], messages: [], subscribers: [] };
+    return {
+      users: [],
+      applications: [],
+      payments: [],
+      messages: [],
+      subscribers: [],
+    };
   }
 }
 
@@ -24,36 +31,114 @@ function writeStore(store) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
 }
 
-// ============ TOKEN MANAGEMENT ============
+// ============ ROLE HELPERS ============
 
-export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+const ROLES = ["admin", "staff", "student"];
+
+function inferRoleFromUrl() {
+  if (typeof window === "undefined") return "student";
+  const path = window.location.pathname;
+  if (path.startsWith("/admin")) return "admin";
+  if (path.startsWith("/staff")) return "staff";
+  if (path.startsWith("/student")) return "student";
+  return localStorage.getItem("cod-active-role") || "student";
 }
 
-export function setToken(token) {
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  } else {
-    localStorage.removeItem(TOKEN_KEY);
+function inferRoleFromPath(path) {
+  if (!path) return null;
+  if (path.startsWith("/admin")) return "admin";
+  if (path.startsWith("/auth/staff")) return "admin";
+  if (path.startsWith("/staff")) return "staff";
+  if (path.startsWith("/student")) return "student";
+  return null;
+}
+
+export function getActiveRole() {
+  return localStorage.getItem("cod-active-role") || "student";
+}
+
+export function setActiveRole(role) {
+  if (ROLES.includes(role)) {
+    localStorage.setItem("cod-active-role", role);
   }
 }
 
-export function getSession() {
+function pickToken(role) {
+  if (role) return localStorage.getItem(`cod-${role}-token`);
+  const order = [getActiveRole(), ...ROLES];
+  for (const r of order) {
+    const t = localStorage.getItem(`cod-${r}-token`);
+    if (t) return t;
+  }
+  return null;
+}
+
+// ============ TOKEN MANAGEMENT ============
+
+export function getToken(role) {
+  const r = role || inferRoleFromUrl();
+  return localStorage.getItem(`cod-${r}-token`);
+}
+
+export function setToken(token, role) {
+  const r = role || inferRoleFromUrl();
+  if (token) {
+    localStorage.setItem(`cod-${r}-token`, token);
+  } else {
+    localStorage.removeItem(`cod-${r}-token`);
+  }
+}
+
+export function getSession(role) {
+  const r = role || inferRoleFromUrl();
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY));
+    return JSON.parse(localStorage.getItem(`cod-${r}-session`));
   } catch {
     return null;
   }
 }
 
-export function setSession(user) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+export function setSession(user, role) {
+  if (!user) return;
+  const r = role || user.role || inferRoleFromUrl();
+  localStorage.setItem(`cod-${r}-session`, JSON.stringify(user));
+  setActiveRole(r);
+}
+
+export function isLoggedIn(role) {
+  const r = role || inferRoleFromUrl();
+  return (
+    !!localStorage.getItem(`cod-${r}-token`) &&
+    !!localStorage.getItem(`cod-${r}-session`)
+  );
+}
+
+export function logoutUser(role) {
+  const r = role || inferRoleFromUrl();
+  localStorage.removeItem(`cod-${r}-token`);
+  localStorage.removeItem(`cod-${r}-session`);
+
+  const anyLoggedIn = ROLES.some((x) =>
+    localStorage.getItem(`cod-${x}-token`)
+  );
+  if (!anyLoggedIn) {
+    localStorage.removeItem("cod-active-role");
+  }
+}
+
+export function decodeJwt(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
 }
 
 // ============ API REQUEST HELPER ============
 
 async function request(path, options = {}) {
-  const token = getToken();
+  const role = inferRoleFromPath(path);
+  const token = pickToken(role);
 
   const headers = {
     "Content-Type": "application/json",
@@ -61,7 +146,9 @@ async function request(path, options = {}) {
     ...options.headers,
   };
 
-  console.log(`🔵 API Request: ${options.method || "GET"} ${API_URL}${path}`);
+  console.log(
+    `🔵 API Request [${role || "any"}]: ${options.method || "GET"} ${API_URL}${path}`
+  );
 
   try {
     const response = await fetch(`${API_URL}${path}`, {
@@ -103,9 +190,12 @@ export async function loginUser(credentials) {
     body: JSON.stringify(credentials),
   });
 
-  if (data.token) {
-    setToken(data.token);
-    setSession(data.user);
+  if (data.token && data.user) {
+    const role = data.user.role || "student";
+    localStorage.setItem(`cod-${role}-token`, data.token);
+    localStorage.setItem(`cod-${role}-session`, JSON.stringify(data.user));
+    localStorage.setItem("cod-active-role", role);
+    console.log(`✅ Logged in as ${role}:`, data.user.email);
   }
 
   return data;
@@ -117,12 +207,23 @@ export async function googleLogin({ token, role }) {
     body: JSON.stringify({ token, role }),
   });
 
-  if (data.token) {
-    setToken(data.token);
-    setSession(data.user);
+  if (data.token && data.user) {
+    const r = data.user.role || "student";
+    localStorage.setItem(`cod-${r}-token`, data.token);
+    localStorage.setItem(`cod-${r}-session`, JSON.stringify(data.user));
+    localStorage.setItem("cod-active-role", r);
   }
 
   return data;
+}
+
+export function setSessionFromToken(token) {
+  const payload = decodeJwt(token);
+  if (!payload) return null;
+  const role = payload.role || "student";
+  localStorage.setItem(`cod-${role}-token`, token);
+  localStorage.setItem("cod-active-role", role);
+  return payload;
 }
 
 export async function getCurrentUser() {
@@ -136,9 +237,10 @@ export async function updateProfile(data) {
   });
 
   if (result.user) {
-    const session = getSession();
-    if (session) {
-      setSession({ ...session, ...result.user });
+    const role = result.user.role || inferRoleFromUrl();
+    const existing = getSession(role);
+    if (existing) {
+      setSession({ ...existing, ...result.user }, role);
     }
   }
 
@@ -150,15 +252,6 @@ export async function changePassword(data) {
     method: "POST",
     body: JSON.stringify(data),
   });
-}
-
-export function logoutUser() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(SESSION_KEY);
-}
-
-export function isLoggedIn() {
-  return !!getToken() && !!getSession();
 }
 
 // ============ STUDENT PROFILE ============
@@ -174,7 +267,17 @@ export async function updateStudentProfile(data) {
   });
 }
 
-// ============ STUDENT COURSES ============
+// ============ STUDENT — MY PROGRAMME & CLASSES ============
+
+export async function getMyProgramme() {
+  return request("/student/my-programme");
+}
+
+export async function getMyEnrolledClasses() {
+  return request("/student/my-classes");
+}
+
+// ============ STUDENT COURSES (legacy) ============
 
 export async function getStudentCourses() {
   return request("/student/courses");
@@ -224,7 +327,7 @@ export async function createApplication(application) {
   return startAdmission(application);
 }
 
-// ============ PROGRAMMES / COURSES ============
+// ============ PROGRAMMES ============
 
 export async function getProgrammes() {
   return request("/admissions/programmes");
@@ -259,7 +362,7 @@ export async function recordPayment(payment) {
   return initializePayment(payment);
 }
 
-// ============ NEWS / BLOG ============
+// ============ NEWS / BLOG (public) ============
 
 export async function getNews() {
   return request("/news");
@@ -285,15 +388,13 @@ export async function subscribeToNewsletter(email) {
   });
 }
 
-// ============ STAFF / ADMIN ============
-
-export async function getStaffStats() {
-  return request("/admin/stats");
-}
+// ============ ADMIN — DASHBOARD ============
 
 export async function getAdminStats() {
   return request("/admin/stats");
 }
+
+// ============ ADMIN — STUDENTS ============
 
 export async function getStudents(params = {}) {
   const query = new URLSearchParams(params).toString();
@@ -333,7 +434,8 @@ export async function deleteAdminStudent(studentId) {
   return deleteStudent(studentId);
 }
 
-// Admin — programmes
+// ============ ADMIN — PROGRAMMES ============
+
 export async function getAdminProgrammes() {
   return request("/admin/programmes");
 }
@@ -358,7 +460,18 @@ export async function deleteAdminProgramme(id) {
   });
 }
 
-// Admin — staff account creation
+// ============ ADMIN — CLASSES & TRACKS ============
+
+export async function getAdminClasses() {
+  return request("/admin/classes");
+}
+
+export async function getAdminTracks() {
+  return request("/admin/tracks");
+}
+
+// ============ ADMIN — STAFF ============
+
 export async function createStaffAccount(data) {
   return request("/auth/staff", {
     method: "POST",
@@ -366,24 +479,35 @@ export async function createStaffAccount(data) {
   });
 }
 
-// Admin — staff list
 export async function getAdminStaff(params = {}) {
   const qs = new URLSearchParams(params).toString();
   return request(`/admin/staff${qs ? "?" + qs : ""}`);
 }
 
-// Admin — payments
+export async function getStaffClasses(staffId) {
+  return request(`/admin/staff/${staffId}/classes`);
+}
+
+export async function assignStaffToClasses(staffId, classIds) {
+  return request(`/admin/staff/${staffId}/assign`, {
+    method: "POST",
+    body: JSON.stringify({ classIds }),
+  });
+}
+
+// ============ ADMIN — PAYMENTS & REPORTS ============
+
 export async function getAdminPayments(params = {}) {
   const qs = new URLSearchParams(params).toString();
   return request(`/admin/payments${qs ? "?" + qs : ""}`);
 }
 
-// Admin — reports
 export async function getAdminReports() {
   return request("/admin/reports");
 }
 
-// Admin — report cards
+// ============ ADMIN — REPORT CARDS ============
+
 export async function getStudentReportCards(studentId) {
   return request(`/admin/students/${studentId}/report-cards`);
 }
@@ -396,6 +520,115 @@ export async function getReportCard(studentId, session, term) {
 
 export async function saveReportCard(studentId, data) {
   return request(`/admin/students/${studentId}/report-cards`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// ============ ADMIN — NEWS / BLOG ============
+
+export async function getAdminNews() {
+  return request("/admin/news");
+}
+
+export async function createAdminNews(data) {
+  return request("/admin/news", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminNews(id, data) {
+  return request(`/admin/news/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAdminNews(id) {
+  return request(`/admin/news/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function uploadBlogCover(file) {
+  const token = localStorage.getItem("cod-admin-token");
+  const fd = new FormData();
+  fd.append("file", file);
+
+  const res = await fetch(`${API_URL}/upload/blog-cover`, {
+    method: "POST",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: fd,
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || data.details || "Upload failed");
+  }
+  return data.url;
+}
+
+// ============ STAFF DASHBOARD ============
+
+export async function getStaffMe() {
+  return request("/staff/me");
+}
+
+export async function getStaffDashboardStats() {
+  return request("/staff/stats");
+}
+
+export async function getStaffStudents(params = {}) {
+  const qs = new URLSearchParams(params).toString();
+  return request(`/staff/students${qs ? "?" + qs : ""}`);
+}
+
+export async function getStaffStudentDetails(id) {
+  return request(`/staff/students/${id}`);
+}
+
+export async function submitStudentScores(studentId, data) {
+  return request(`/staff/students/${studentId}/scores`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function submitStudentResults(studentId, data) {
+  return request(`/staff/students/${studentId}/submit-results`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getStaffAssignments() {
+  return request("/staff/assignments");
+}
+
+export async function createStaffAssignment(data) {
+  return request("/staff/assignments", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getStaffSubmissions(assignmentId) {
+  return request(`/staff/submissions/${assignmentId}`);
+}
+
+export async function getStaffInbox() {
+  return request("/staff/inbox");
+}
+
+export async function getStaffConversation(studentId) {
+  return request(`/staff/messages/${studentId}`);
+}
+
+export async function sendStaffMessage(data) {
+  return request("/staff/messages", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -513,6 +746,11 @@ export default {
   getSession,
   getToken,
   setToken,
+  setSession,
+  setSessionFromToken,
+  getActiveRole,
+  setActiveRole,
+  decodeJwt,
   isLoggedIn,
   getCurrentUser,
   updateProfile,
@@ -522,7 +760,11 @@ export default {
   getStudentProfile,
   updateStudentProfile,
 
-  // Student Courses
+  // Student — my programme & classes
+  getMyProgramme,
+  getMyEnrolledClasses,
+
+  // Student Courses (legacy)
   getStudentCourses,
   getCourseDetails,
   getEnrollments,
@@ -547,7 +789,7 @@ export default {
   getInvoices,
   recordPayment,
 
-  // News
+  // News (public)
   getNews,
   getNewsPost,
 
@@ -555,9 +797,10 @@ export default {
   submitContactMessage,
   subscribeToNewsletter,
 
-  // Admin/Staff
-  getStaffStats,
+  // Admin — dashboard
   getAdminStats,
+
+  // Admin — students
   getStudents,
   getAdminStudents,
   getStudentById,
@@ -566,17 +809,52 @@ export default {
   updateAdminStudent,
   deleteStudent,
   deleteAdminStudent,
+
+  // Admin — programmes
   getAdminProgrammes,
   createAdminProgramme,
   updateAdminProgramme,
   deleteAdminProgramme,
+
+  // Admin — classes & tracks
+  getAdminClasses,
+  getAdminTracks,
+
+  // Admin — staff
   createStaffAccount,
   getAdminStaff,
+  getStaffClasses,
+  assignStaffToClasses,
+
+  // Admin — payments & reports
   getAdminPayments,
   getAdminReports,
+
+  // Admin — report cards
   getStudentReportCards,
   getReportCard,
   saveReportCard,
+
+  // Admin — news / blog
+  getAdminNews,
+  createAdminNews,
+  updateAdminNews,
+  deleteAdminNews,
+  uploadBlogCover,
+
+  // Staff Dashboard
+  getStaffMe,
+  getStaffDashboardStats,
+  getStaffStudents,
+  getStaffStudentDetails,
+  submitStudentScores,
+  submitStudentResults,
+  getStaffAssignments,
+  createStaffAssignment,
+  getStaffSubmissions,
+  getStaffInbox,
+  getStaffConversation,
+  sendStaffMessage,
 
   // Notifications
   getNotifications,

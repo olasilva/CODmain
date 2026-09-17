@@ -1,173 +1,314 @@
 // src/pages/admin/AdminStudents.jsx
-import React, { useState } from 'react';
-import AdminSidebar from './components/AdminSidebar';
-import AdminHeader from './components/AdminHeader';
-import AdminAddStudentModal from './components/AdminStudentModal';
-
-const students = [
-  { id: 'STU-001', name: 'Chidi Okonkwo', class: 'Primary 3', programme: 'Music', guardian: 'Mr. Okonkwo', enrolled: '10 Jan 2025', status: 'Active' },
-  { id: 'STU-002', name: 'Aisha Mohammed', class: 'Primary 5', programme: 'Regular', guardian: 'Alhaji Mohammed', enrolled: '15 Jan 2025', status: 'Active' },
-  { id: 'STU-003', name: 'Emeka Chike', class: 'Primary 2', programme: 'Mixed', guardian: 'Mrs. Chike', enrolled: '20 Jan 2025', status: 'Active' },
-  { id: 'STU-004', name: 'Ngozi Eze', class: 'Primary 4', programme: 'Regular', guardian: 'Dr. Eze', enrolled: '5 Feb 2025', status: 'Active' },
-  { id: 'STU-005', name: 'Tunde Adeyemi', class: 'Primary 1', programme: 'Regular', guardian: 'Mr. Adeyemi', enrolled: '10 Feb 2025', status: 'Active' },
-  { id: 'STU-006', name: 'Fatima Bello', class: 'Primary 6', programme: 'Music', guardian: 'Mrs. Bello', enrolled: '15 Feb 2025', status: 'Active' },
-  { id: 'STU-007', name: 'Obinna Nwosu', class: 'Primary 3', programme: 'Mixed', guardian: 'Mr. Nwosu', enrolled: '20 Feb 2025', status: 'Inactive' },
-  { id: 'STU-008', name: 'Chioma Obi', class: 'Primary 4', programme: 'Regular', guardian: 'Mr. Obi', enrolled: '25 Feb 2025', status: 'Active' },
-  { id: 'STU-009', name: 'Adaeze Okeke', class: 'Primary 5', programme: 'Regular', guardian: 'Mr. Okeke', enrolled: '1 Mar 2025', status: 'Active' },
-  { id: 'STU-010', name: 'Yusuf Ibrahim', class: 'Primary 2', programme: 'Mixed', guardian: 'Mr. Ibrahim', enrolled: '5 Mar 2025', status: 'Active' },
-];
-
-const stats = [
-  { label: 'Total Students', value: 10, color: 'text-black' },
-  { label: 'Active', value: 9, color: 'text-[#34A853]' },
-  { label: 'Inactive', value: 1, color: 'text-[#EA4335]' },
-  { label: 'New This Term', value: 10, color: 'text-[#1A73E8]' },
-];
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getAdminStudents, deleteAdminStudent } from '../../lib/api';
+import useFetch from '../../lib/useFetch';
 
 export default function AdminStudents() {
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [payFilter, setPayFilter] = useState('all');
 
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.id.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data, loading, error, refetch } = useFetch(
+    () => getAdminStudents({ page, limit: 20, search }),
+    [page, search],
+    { initialData: { students: [], pagination: {} } }
   );
 
-  const getStatusColor = (status) => {
-    return status === 'Active' 
-      ? 'bg-green-100 text-green-600' 
-      : 'bg-red-100 text-red-500';
+  const allStudents = data?.students || [];
+  const pagination = data?.pagination || {};
+
+  // Client-side filters
+  const students = allStudents.filter((s) => {
+    if (statusFilter !== 'all' && s.status !== statusFilter) return false;
+    if (payFilter !== 'all' && s.payment_status !== payFilter) return false;
+    return true;
+  });
+
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Delete ${name}? This cannot be undone.`)) return;
+    try {
+      await deleteAdminStudent(id);
+      refetch();
+    } catch (err) {
+      alert(err.message || 'Failed to delete');
+    }
+  };
+
+  const payBadge = (status) => {
+    const map = {
+      completed: 'bg-green-100 text-green-700',
+      pending: 'bg-yellow-100 text-yellow-700',
+      failed: 'bg-red-100 text-red-700',
+      none: 'bg-gray-100 text-gray-500',
+    };
+    return map[status] || map.none;
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] flex">
-      <AdminSidebar activeItem="Students" />
-      <div className="flex-1 ml-[300px]">
-        <AdminHeader />
-        
-        <div className="max-w-[1140px] mx-auto px-8 py-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-[36px] font-bold text-black font-ebrima leading-[54px]">
-              Students
-            </h1>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="px-5 py-3 bg-[#1A73E8] rounded-xl text-white font-bold text-sm flex items-center gap-2 hover:bg-blue-700 transition"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Add Student
-            </button>
-          </div>
+    <div className="max-w-[1200px] mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-[32px] font-bold text-black font-ebrima">
+            Students
+          </h1>
+          <p className="text-sm text-black/50 mt-1">
+            {pagination.total || 0} total · {students.length} shown
+          </p>
+        </div>
+      </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {stats.map((stat, index) => (
-              <div key={index} className="bg-white rounded-2xl border border-black/15 p-4">
-                <p className="text-sm text-black/60 font-ebrima">{stat.label}</p>
-                <p className={`text-2xl font-bold ${stat.color} font-ebrima mt-1`}>{stat.value}</p>
-              </div>
-            ))}
-          </div>
+      {/* Filter row */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 mb-4">
+        <div className="bg-white rounded-xl border border-black/15 px-4 py-3 flex items-center gap-3">
+          <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by name, email, ID or programme…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="flex-1 outline-none bg-transparent text-sm"
+          />
+        </div>
 
-          {/* Search and Filters */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 bg-white rounded-xl border border-black/15 px-4 py-2.5 flex items-center gap-2.5">
-              <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="M21 21l-4.35-4.35" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search students by name or ID…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 outline-none bg-transparent text-sm"
-              />
-            </div>
-            {['All', 'Active', 'Inactive'].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
-                  activeFilter === filter
-                    ? 'bg-[#1A73E8] text-white border-2 border-[#1A73E8]'
-                    : 'bg-white text-gray-500 border border-black/15 hover:bg-gray-50'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-3 bg-white border border-black/15 rounded-xl text-sm font-bold text-black/70"
+        >
+          <option value="all">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
 
-          {/* Table */}
-          <div className="bg-white rounded-2xl border border-black/10 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[#F8F9FA] border-b border-black/10">
-                  <tr>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Student ID</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Name</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Class</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Programme</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Guardian</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Date Enrolled</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Status</th>
-                    <th className="text-left py-3.5 px-5 text-sm font-bold text-black/55">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStudents.map((student, index) => (
-                    <tr key={student.id} className={index % 2 === 0 ? 'bg-white' : 'bg-[#FAFAFA]'}>
-                      <td className="py-3 px-5 text-[#1A73E8] font-bold text-sm">{student.id}</td>
-                      <td className="py-3 px-5 font-bold text-black">{student.name}</td>
-                      <td className="py-3 px-5 text-black/60">{student.class}</td>
-                      <td className="py-3 px-5 text-black/60">{student.programme}</td>
-                      <td className="py-3 px-5 text-black/60">{student.guardian}</td>
-                      <td className="py-3 px-5 text-black/60">{student.enrolled}</td>
-                      <td className="py-3 px-5">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(student.status)}`}>
-                          {student.status}
-                        </span>
-                      </td>
+        <select
+          value={payFilter}
+          onChange={(e) => setPayFilter(e.target.value)}
+          className="px-4 py-3 bg-white border border-black/15 rounded-xl text-sm font-bold text-black/70"
+        >
+          <option value="all">All payments</option>
+          <option value="completed">Paid</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+          <option value="none">No payment</option>
+        </select>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-black/10 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-[#F8F9FA] border-b border-black/10">
+              <tr>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">Student</th>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">ID</th>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">Programme</th>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">Teacher</th>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">Payment</th>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">Results</th>
+                <th className="text-right py-3.5 px-5 text-xs font-bold text-black/55 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-black/50">
+                    Loading students…
+                  </td>
+                </tr>
+              )}
+              {!loading && students.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-black/50">
+                    No students found.
+                  </td>
+                </tr>
+              )}
+              {!loading &&
+                students.map((s, i) => {
+                  const primaryTeacher = s.instructors?.[0];
+                  const hasSubmitted = (s.reportCards?.submitted || 0) > 0;
+                  const rcTotal = s.reportCards?.total || 0;
+
+                  return (
+                    <tr
+                      key={s.id}
+                      className={`border-b border-black/5 hover:bg-blue-50/40 cursor-pointer ${
+                        i % 2 === 0 ? 'bg-white' : 'bg-[#FAFAFA]'
+                      }`}
+                      onClick={() => navigate(`/admin/students/${s.id}`)}
+                    >
+                      {/* Student */}
                       <td className="py-3 px-5">
                         <div className="flex items-center gap-3">
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <div className="w-9 h-9 rounded-full bg-blue-100 text-[#1A73E8] flex items-center justify-center font-bold text-sm">
+                            {(s.fullName || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-bold text-black text-sm">
+                              {s.fullName || 'Unnamed'}
+                            </div>
+                            <div className="text-xs text-black/50">
+                              {s.email || '—'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* ID */}
+                      <td className="py-3 px-5">
+                        <span className="font-mono text-xs text-[#1A73E8] font-bold">
+                          {s.student_id || '—'}
+                        </span>
+                      </td>
+
+                      {/* Programme */}
+                      <td className="py-3 px-5 text-sm text-black/70">
+                        {s.programme || (
+                          <span className="text-black/30 italic">not set</span>
+                        )}
+                      </td>
+
+                      {/* Teacher */}
+                      <td className="py-3 px-5">
+                        {primaryTeacher ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">
+                              {(primaryTeacher.full_name || '?').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-black">
+                                {primaryTeacher.full_name}
+                              </div>
+                              {s.instructors.length > 1 && (
+                                <div className="text-[10px] text-black/40">
+                                  +{s.instructors.length - 1} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-black/30 italic">Not assigned</span>
+                        )}
+                      </td>
+
+                      {/* Payment */}
+                      <td className="py-3 px-5">
+                        <div className="flex flex-col gap-1">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-bold w-fit ${payBadge(
+                              s.payment_status
+                            )}`}
+                          >
+                            {s.payment_status}
+                          </span>
+                          {s.payment_amount > 0 && (
+                            <span className="text-xs text-black/60 font-bold">
+                              ₦{Number(s.payment_amount).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Results */}
+                      <td className="py-3 px-5">
+                        {rcTotal === 0 ? (
+                          <span className="text-xs text-black/30 italic">None</span>
+                        ) : hasSubmitted ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                            ✓ {s.reportCards.submitted} submitted
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+                            {rcTotal} draft
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-3 px-5" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1">
+                          {/* Generate / View Report Card */}
+                          <button
+                            onClick={() => navigate(`/admin/students/${s.id}/results`)}
+                            className="p-2 rounded-lg hover:bg-green-50 text-green-600"
+                            title="Generate / View Report Card"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
+                            </svg>
+                          </button>
+
+                          {/* View profile */}
+                          <button
+                            onClick={() => navigate(`/admin/students/${s.id}`)}
+                            className="p-2 rounded-lg hover:bg-blue-50 text-[#1A73E8]"
+                            title="View profile"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                               <circle cx="12" cy="12" r="3" />
                             </svg>
                           </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <svg className="w-4 h-4 text-[#1A73E8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                          </button>
-                          <button className="p-1 hover:bg-gray-100 rounded">
-                            <svg className="w-4 h-4 text-[#EA4335]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+
+                          {/* Delete */}
+                          <button
+                            onClick={() => handleDelete(s.id, s.fullName)}
+                            className="p-2 rounded-lg hover:bg-red-50 text-red-500"
+                            title="Delete"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                             </svg>
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  );
+                })}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Add Student Modal */}
-      <AdminAddStudentModal 
-        isOpen={showAddModal} 
-        onClose={() => setShowAddModal(false)} 
-      />
+      {/* Pagination */}
+      {pagination.pages > 1 && (
+        <div className="flex justify-center items-center gap-3 mt-6">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 border border-black/15 rounded-lg text-sm font-bold disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-black/60">
+            Page {page} of {pagination.pages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+            disabled={page === pagination.pages}
+            className="px-4 py-2 border border-black/15 rounded-lg text-sm font-bold disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/components/StatsBar.jsx
 const stats = [
   { value: '1200+', label: 'Students Enrolled' },
   { value: '98%', label: 'Parent Satisfaction' },

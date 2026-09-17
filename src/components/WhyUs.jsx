@@ -1,3 +1,4 @@
+// src/components/WhyUs.jsx
 const features = [
   {
     title: 'Expert Tutors',

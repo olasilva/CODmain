@@ -1,9 +1,17 @@
 // src/pages/admin/components/ResultSheet.jsx
+import logo from '../../../assets/logo.jpg';
+
 export default function ResultSheet({ data }) {
   if (!data) return null;
 
   const subjects = data.subjects || [];
   const psychomotor = data.psychomotor || {};
+
+  const photoUrl =
+    data.student?.photo_url ||
+    data.student?.user?.avatar_url ||
+    data.student?.avatar_url ||
+    null;
 
   const rows = [
     ['Attendance', psychomotor.attendance],
@@ -61,66 +69,93 @@ export default function ResultSheet({ data }) {
         CLAN OF DAVID
       </div>
 
-      {/* Header */}
-      <div className="relative flex items-start justify-between gap-4 mb-4">
-        <div className="flex-1 text-center" style={{ marginLeft: '80px' }}>
-          <h1 style={{ color: '#1A73E8', fontSize: '20px', fontWeight: 800, letterSpacing: '0.5px' }}>
+      {/* ─── Header ─── */}
+      <div className="relative flex items-start justify-between gap-4 mb-3">
+        {/* Student photo (left) */}
+        <div
+          style={{
+            width: '80px',
+            height: '95px',
+            border: '1.5px solid #1a1a1a',
+            background: '#e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            flexShrink: 0,
+          }}
+        >
+          {photoUrl ? (
+            <img
+              src={photoUrl}
+              alt="Student"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <span style={{ fontSize: '9px', color: '#666', textAlign: 'center' }}>
+              PHOTO
+            </span>
+          )}
+        </div>
+
+        {/* Center title */}
+        <div className="flex-1 text-center">
+          <h1
+            style={{
+              color: '#1A73E8',
+              fontSize: '22px',
+              fontWeight: 800,
+              letterSpacing: '0.5px',
+              margin: 0,
+            }}
+          >
             CLAN OF DAVID ART AND MUSIC ACADEMY
           </h1>
-          <p style={{ fontStyle: 'italic', fontSize: '11px', marginTop: '2px' }}>
+          <p style={{ fontStyle: 'italic', fontSize: '11px', margin: '2px 0 0' }}>
             Family of Music Makers
           </p>
-          <p style={{ fontSize: '10px', marginTop: '4px' }}>
-            No 1, (H) 21 Road, Off Chukwu Okafor St. Environmental FHA Lugbe, Abuja.
+          <p style={{ fontSize: '10px', margin: '4px 0 0' }}>
+            No 1, (H) 21 Road, Off Chukwu Okafor St. Environmental FHA Lugbe,
+            Abuja.
           </p>
-          <p style={{ fontSize: '11px', fontWeight: 'bold', marginTop: '6px' }}>
-            {data.term || 'Third Term'} Progress Report {data.session || ''} Academic Session
+          <p
+            style={{
+              fontSize: '11px',
+              fontWeight: 'bold',
+              margin: '6px 0 0',
+            }}
+          >
+            {data.term || 'Third Term'} Progress Report {data.session || ''}{' '}
+            Academic Session
           </p>
         </div>
-        <div className="flex gap-2 items-start">
-          <div
-            style={{
-              width: '70px',
-              height: '85px',
-              border: '1px solid #333',
-              background: '#f5f5f5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '10px',
-              textAlign: 'center',
+
+        {/* Logo (right) */}
+        <div
+          style={{
+            width: '85px',
+            height: '95px',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+          }}
+        >
+          <img
+            src={logo}
+            alt="Logo"
+            style={{ width: '85px', height: 'auto', objectFit: 'contain' }}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
             }}
-          >
-            {data.student?.photo_url ? (
-              <img
-                src={data.student.photo_url}
-                alt="Student"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              'PHOTO'
-            )}
-          </div>
-          <div
-            style={{
-              width: '55px',
-              height: '55px',
-              border: '1px solid #1A73E8',
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#1A73E8',
-              fontWeight: 'bold',
-              fontSize: '10px',
-            }}
-          >
-            CREST
-          </div>
+          />
         </div>
       </div>
 
-      {/* Student info */}
+      {/* ─── Student info table ─── */}
       <table
         style={{
           width: '100%',
@@ -133,7 +168,10 @@ export default function ResultSheet({ data }) {
         <tbody>
           <tr>
             <td style={infoTd}>Student name:</td>
-            <td style={{ ...infoTd, fontWeight: 'bold' }} colSpan={2}>
+            <td
+              style={{ ...infoTd, fontWeight: 'bold', color: '#1A73E8' }}
+              colSpan={2}
+            >
               {data.student?.full_name || '—'}
             </td>
             <td style={{ ...infoTd, fontWeight: 'bold' }}>Resumption Date:</td>
@@ -144,14 +182,20 @@ export default function ResultSheet({ data }) {
             <td style={infoTd} colSpan={2}>
               {data.student?.student_id || '—'}
             </td>
-            <td style={{ ...infoTd, fontWeight: 'bold' }}>Expected Total Score:</td>
+            <td style={{ ...infoTd, fontWeight: 'bold' }}>
+              Expected Total Score:
+            </td>
             <td style={infoTd}>{data.overall_total ?? '—'}</td>
           </tr>
           <tr>
             <td style={infoTd}>Total No in Class:</td>
             <td style={infoTd}>{data.total_in_class ?? '—'}</td>
-            <td style={infoTd}></td>
-            <td style={{ ...infoTd, fontWeight: 'bold' }}>Total Obtainable:</td>
+            <td style={infoTd}>
+              Age: {data.student?.age ?? '—'}
+            </td>
+            <td style={{ ...infoTd, fontWeight: 'bold' }}>
+              Total Obtainable:
+            </td>
             <td style={infoTd}>{data.total_obtainable ?? '—'}</td>
           </tr>
           <tr>
@@ -159,25 +203,31 @@ export default function ResultSheet({ data }) {
             <td style={infoTd} colSpan={2}>
               {data.student?.academic_year || '—'}
             </td>
-            <td style={{ ...infoTd, fontWeight: 'bold' }}>Pupil's Overall Percentage:</td>
+            <td style={{ ...infoTd, fontWeight: 'bold' }}>
+              Pupil's Overall Percentage:
+            </td>
             <td style={infoTd}>
-              {data.overall_percentage != null ? `${data.overall_percentage}%` : '—'}
+              {data.overall_percentage != null
+                ? `${data.overall_percentage}%`
+                : '—'}
             </td>
           </tr>
           <tr>
             <td style={infoTd}></td>
             <td style={infoTd} colSpan={2}></td>
             <td style={{ ...infoTd, fontWeight: 'bold' }}>Overall Grade:</td>
-            <td style={{ ...infoTd, fontWeight: 'bold', color: '#1A73E8' }}>
+            <td
+              style={{ ...infoTd, fontWeight: 'bold', color: '#1A73E8' }}
+            >
               {data.overall_grade || '—'}
             </td>
           </tr>
         </tbody>
       </table>
 
-      {/* Subjects + sidebar */}
+      {/* ─── Subjects + Sidebar ─── */}
       <div className="flex gap-3">
-        {/* Subjects table */}
+        {/* Subject table */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <table
             style={{
@@ -190,9 +240,21 @@ export default function ResultSheet({ data }) {
             <thead>
               <tr style={{ background: '#1A73E8', color: '#fff' }}>
                 <th style={thStyle}>SUBJECTS</th>
-                <th style={thStyle}>1ST CA<br /><span style={{ fontSize: '8px' }}>20%</span></th>
-                <th style={thStyle}>2ND CA<br /><span style={{ fontSize: '8px' }}>20%</span></th>
-                <th style={thStyle}>EXAM<br /><span style={{ fontSize: '8px' }}>60%</span></th>
+                <th style={thStyle}>
+                  1ST CA
+                  <br />
+                  <span style={{ fontSize: '8px' }}>20%</span>
+                </th>
+                <th style={thStyle}>
+                  2ND CA
+                  <br />
+                  <span style={{ fontSize: '8px' }}>20%</span>
+                </th>
+                <th style={thStyle}>
+                  EXAM
+                  <br />
+                  <span style={{ fontSize: '8px' }}>60%</span>
+                </th>
                 <th style={thStyle}>3RD TERM TOTAL</th>
                 <th style={thStyle}>POSITION</th>
                 <th style={thStyle}>IN CLASS</th>
@@ -224,7 +286,13 @@ export default function ResultSheet({ data }) {
                       {s.grade ?? '—'}
                     </strong>
                   </td>
-                  <td style={{ ...tdStyle, fontStyle: 'italic', fontSize: '9px' }}>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      fontStyle: 'italic',
+                      fontSize: '9px',
+                    }}
+                  >
                     {s.remark ?? '—'}
                   </td>
                 </tr>
@@ -259,9 +327,18 @@ export default function ResultSheet({ data }) {
               Attendance Detail
             </div>
             <div style={{ padding: '4px 6px', fontSize: '9px' }}>
-              <SideRow label="No of times school opened" value={data.attendance_total} />
-              <SideRow label="No of times present" value={data.attendance_present} />
-              <SideRow label="No of times absent" value={data.attendance_absent} />
+              <SideRow
+                label="No of times school opened"
+                value={data.attendance_total}
+              />
+              <SideRow
+                label="No of times present"
+                value={data.attendance_present}
+              />
+              <SideRow
+                label="No of times absent"
+                value={data.attendance_absent}
+              />
             </div>
           </div>
 
@@ -279,7 +356,13 @@ export default function ResultSheet({ data }) {
             >
               Assessment Rubric
             </div>
-            <table style={{ width: '100%', fontSize: '8px', borderCollapse: 'collapse' }}>
+            <table
+              style={{
+                width: '100%',
+                fontSize: '8px',
+                borderCollapse: 'collapse',
+              }}
+            >
               <thead>
                 <tr>
                   <th
@@ -310,7 +393,10 @@ export default function ResultSheet({ data }) {
                   <tr key={label}>
                     <td style={{ padding: '1px 4px' }}>{label}</td>
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <td key={n} style={{ textAlign: 'center', fontSize: '9px' }}>
+                      <td
+                        key={n}
+                        style={{ textAlign: 'center', fontSize: '9px' }}
+                      >
                         {val === n ? '✓' : ''}
                       </td>
                     ))}
@@ -330,7 +416,9 @@ export default function ResultSheet({ data }) {
               lineHeight: 1.3,
             }}
           >
-            <p style={{ fontWeight: 'bold', marginBottom: '1px' }}>ASSESSMENT KEYS</p>
+            <p style={{ fontWeight: 'bold', marginBottom: '1px' }}>
+              ASSESSMENT KEYS
+            </p>
             <p>5=Highly proficient 3=Proficient</p>
             <p>2=Needs to improve 1=Unsatisfactory</p>
           </div>
@@ -344,7 +432,9 @@ export default function ResultSheet({ data }) {
               lineHeight: 1.3,
             }}
           >
-            <p style={{ fontWeight: 'bold', marginBottom: '1px' }}>ACADEMIC GRADING SCALE</p>
+            <p style={{ fontWeight: 'bold', marginBottom: '1px' }}>
+              ACADEMIC GRADING SCALE
+            </p>
             <p>80–100% A DISTINCTION</p>
             <p>70–79% B1 EXCELLENT</p>
             <p>60–69% B2 VERY GOOD</p>
@@ -355,7 +445,7 @@ export default function ResultSheet({ data }) {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* ─── Footer ─── */}
       <table
         style={{
           width: '100%',
@@ -386,8 +476,10 @@ export default function ResultSheet({ data }) {
           </tr>
           <tr>
             <td style={infoTd}>Headteacher:</td>
-            <td style={{ ...infoTd }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <td style={infoTd}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between' }}
+              >
                 <strong>{data.head_teacher || '—'}</strong>
                 <span>
                   <strong>Date:</strong> {fmtDate(data.term_ending)}

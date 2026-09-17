@@ -1,7 +1,16 @@
 // src/pages/admin/components/AdminSidebar.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { DashboardIcon, PeopleIcon, CoursesIcon, PaymentsIcon, ReportsIcon, SettingsIcon, LogoutIcon } from '../../../components/BoxIcons';
+import {
+  DashboardIcon,
+  PeopleIcon,
+  CoursesIcon,
+  PaymentsIcon,
+  ReportsIcon,
+  SettingsIcon,
+  LogoutIcon,
+  NewsIcon,          // 👈 add this to BoxIcons.jsx
+} from '../../../components/BoxIcons';
 import logo from '../../../assets/logo.jpg';
 
 const menuItems = [
@@ -11,6 +20,7 @@ const menuItems = [
   { icon: CoursesIcon, label: 'Courses', path: '/admin/courses' },
   { icon: PaymentsIcon, label: 'Payments', path: '/admin/payments' },
   { icon: ReportsIcon, label: 'Reports', path: '/admin/reports' },
+  { icon: NewsIcon, label: 'Blog & News', path: '/admin/blog' },   // 👈 NEW
   { icon: SettingsIcon, label: 'Settings', path: '/admin/settings' },
 ];
 
@@ -19,8 +29,17 @@ export default function AdminSidebar({ activeItem }) {
     <div className="w-[300px] min-h-screen bg-[#1A73E8] fixed left-0 top-0 overflow-y-auto">
       <div className="p-8">
         <div className="flex items-center gap-3 mb-8">
-          <img src={logo} alt="Clan of David" className="w-12 h-12 rounded-xl object-cover" />
-          <span className="text-white text-2xl font-bold font-ebrima">Clan of David</span>
+          <img
+            src={logo}
+            alt="Clan of David"
+            className="w-12 h-12 rounded-xl object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          <span className="text-white text-2xl font-bold font-ebrima">
+            Clan of David
+          </span>
         </div>
 
         {/* Navigation */}
@@ -47,7 +66,7 @@ export default function AdminSidebar({ activeItem }) {
           {/* Divider */}
           <div className="my-4 border-t border-white/10" />
 
-          {/* Logout Button */}
+          {/* Logout */}
           <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-white/80 hover:bg-white/10 hover:text-white transition-colors">
             <LogoutIcon className="w-6 h-6" />
             <span className="text-[24px] font-medium font-sf-compact leading-[36px]">
