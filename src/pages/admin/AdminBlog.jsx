@@ -22,13 +22,13 @@ const emptyForm = {
   is_published: true,
 };
 
+// Matches the DB check constraint exactly:
+// CHECK (category IN ('announcement', 'event', 'news', 'blog'))
 const CATEGORY_OPTIONS = [
-  'Academics',
-  'Music',
-  'Events',
-  'Achievements',
-  'Announcements',
-  'Admissions',
+  { value: 'announcement', label: 'Announcement' },
+  { value: 'event', label: 'Event' },
+  { value: 'news', label: 'News' },
+  { value: 'blog', label: 'Blog' },
 ];
 
 export default function AdminBlog() {
@@ -112,6 +112,7 @@ export default function AdminBlog() {
     try {
       const payload = {
         ...form,
+        category: form.category || null,
         tags: form.tags
           .split(',')
           .map((t) => t.trim())
@@ -433,7 +434,9 @@ export default function AdminBlog() {
                   >
                     <option value="">Select…</option>
                     {CATEGORY_OPTIONS.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c.value} value={c.value}>
+                        {c.label}
+                      </option>
                     ))}
                   </select>
                 </div>

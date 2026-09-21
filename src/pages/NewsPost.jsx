@@ -1,49 +1,144 @@
-import { Link, Navigate, useParams } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { posts, formatDate } from "../data/news";
-import { ArrowLeftIcon } from "../components/Icons";
+// src/pages/NewsPost.jsx
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { getNewsPost } from '../lib/api';
+
+const FALLBACK_COVER =
+  'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&q=80';
 
 export default function NewsPost() {
   const { slug } = useParams();
-  const post = posts.find((p) => p.slug === slug);
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  if (!post) return <Navigate to="/news" replace />;
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await getNewsPost(slug);
+        // Handle either a raw post or a wrapped one
+        const data = res?.data && !res.id ? res.data : res;
+        if (!cancelled) setPost(data || null);
+      } catch (err) {
+        if (!cancelled) setError(err.message || 'Failed to load post');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
 
   return (
-    <div className="min-h-screen bg-cod-bg">
+    <div className="bg-cod-bg min-h-screen">
       <Navbar />
 
-      <div className="max-w-3xl mx-auto px-6 lg:px-10 py-12">
+      <article className="max-w-3xl mx-auto px-5 md:px-8 py-14">
         <Link
           to="/news"
-          className="focus-ring inline-flex items-center gap-1.5 text-cod-blue font-semibold text-sm mb-6 hover:text-cod-blue-dark transition-colors"
+          className="inline-flex items-center gap-2 text-cod-blue font-semibold text-sm mb-8 hover:gap-3 transition-all"
         >
-          <ArrowLeftIcon className="h-4 w-4" />
-          Back to News
+          ← Back to all news
         </Link>
 
-        <div className="relative h-64 md:h-80 w-full rounded-2xl overflow-hidden mb-8 animate-fadeUp">
-          {post.image ? (
-            <img src={post.image} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-cod-blue via-cyan-500 to-emerald-400" />
-          )}
-          <span className="absolute top-5 left-5 rounded-full bg-cod-blue-dark/90 text-white text-xs font-semibold px-3 py-1.5">
-            {post.category}
-          </span>
-        </div>
+        {loading && <p className="text-slate-500">Loading post…</p>}
 
-        <p className="text-slate-400 text-sm font-medium mb-2 animate-fadeUp">{formatDate(post.date)}</p>
-        <h1 className="text-slate-800 text-2xl md:text-3xl font-bold mb-6 animate-fadeUp">{post.title}</h1>
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            {error}
+          </div>
+        )}
 
-        {/*
-          Full article body goes here. Add a `body` field (array of
-          paragraphs, or markdown/HTML string) to the post object in
-          src/data/news.js and render it below.
-        */}
-        <p className="text-slate-600 leading-relaxed animate-fadeUp">{post.excerpt}</p>
-      </div>
+        {!loading && !post && !error && (
+          <div className="text-center py-16">
+            <p className="text-lg font-bold text-black/70 mb-2">Post not found</p>
+            <Link to="/news" className="text-cod-blue font-semibold">
+              ← Back to all news
+            </Link>
+          </div>
+        )}
+
+        {post && (
+          <>
+            {post.category && (
+              <span className="inline-block mb-4 px-3 py-1 bg-cod-blue/10 text-cod-blue rounded-full text-xs font-bold uppercase tracking-wide">
+                {post.category}
+              </span>
+            )}
+
+            <h1 className="font-display font-bold text-3xl md:text-5xl text-cod-blue-dark leading-tight mb-4">
+              {post.title}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-8">
+              {post.author && <span>By {post.author}</span>}
+              {(post.published_at || post.created_at) && (
+                <span>
+                  {new Date(post.published_at || post.created_at).toLocaleDateString(
+                    'en-NG',
+                    { day: 'numeric', month: 'long', year: 'numeric' }
+                  )}
+                </span>
+              )}
+              {post.read_time && <span>{post.read_time}</span>}
+            </div>
+
+            <img
+              src={post.cover_image_url || FALLBACK_COVER}
+              alt={post.title}
+              className="w-full rounded-2xl mb-10 shadow-lg"
+              onError={(e) => {
+                e.currentTarget.src = FALLBACK_COVER;
+              }}
+            />
+
+            {post.excerpt && (
+              <p className="text-lg text-slate-700 font-medium leading-relaxed mb-6 border-l-4 border-cod-pink pl-5">
+                {post.excerpt}
+              </p>
+            )}
+
+            <div className="prose prose-lg max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap">
+              {post.content}
+            </div>
+
+            {Array.isArray(post.tags) && post.tags.length > 0 && (
+              <div className="mt-10 pt-6 border-t border-black/10 flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {post.link_url && (
+              <div className="mt-10 p-5 bg-cod-blue/5 rounded-2xl border border-cod-blue/20">
+                <p className="text-sm text-slate-600 mb-3">
+                  This story continues on an external site:
+                </p>
+                <a
+                  href={post.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-cod-blue text-white font-bold px-6 py-3 rounded-full hover:brightness-110 transition"
+                >
+                  Read the full story →
+                </a>
+              </div>
+            )}
+          </>
+        )}
+      </article>
 
       <Footer />
     </div>
