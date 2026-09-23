@@ -495,6 +495,36 @@ export async function assignStaffToClasses(staffId, classIds) {
   });
 }
 
+// ============ ADMIN — STAFF DETAILS ============
+
+export async function getStaffDetails(staffId) {
+  return request(`/admin/staff/${staffId}`);
+}
+
+export async function updateStaffAccount(staffId, data) {
+  return request(`/admin/staff/${staffId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteStaffAccount(staffId) {
+  return request(`/admin/staff/${staffId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function getStaffPassword(staffId) {
+  return request(`/admin/staff/${staffId}/password`);
+}
+
+export async function resetStaffPassword(staffId, options = {}) {
+  return request(`/admin/staff/${staffId}/reset-password`, {
+    method: "POST",
+    body: JSON.stringify(options),
+  });
+}
+
 // ============ ADMIN — PAYMENTS & REPORTS ============
 
 export async function getAdminPayments(params = {}) {
@@ -632,6 +662,38 @@ export async function sendStaffMessage(data) {
     method: "POST",
     body: JSON.stringify(data),
   });
+}
+
+// ============ ONLINE SESSIONS (STAFF) ============
+
+export async function createOnlineSession(data) {
+  return request("/staff/sessions", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getStaffOnlineSessions() {
+  return request("/staff/sessions");
+}
+
+export async function updateOnlineSession(id, data) {
+  return request(`/staff/sessions/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteOnlineSession(id) {
+  return request(`/staff/sessions/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// ============ ONLINE SESSIONS (STUDENT) ============
+
+export async function getStudentOnlineSessions() {
+  return request("/student/sessions");
 }
 
 // ============ NOTIFICATIONS ============
@@ -826,6 +888,13 @@ export default {
   getStaffClasses,
   assignStaffToClasses,
 
+  // Admin — staff details
+  getStaffDetails,
+  updateStaffAccount,
+  deleteStaffAccount,
+  getStaffPassword,
+  resetStaffPassword,
+
   // Admin — payments & reports
   getAdminPayments,
   getAdminReports,
@@ -855,6 +924,15 @@ export default {
   getStaffInbox,
   getStaffConversation,
   sendStaffMessage,
+
+  // Online Sessions (Staff)
+  createOnlineSession,
+  getStaffOnlineSessions,
+  updateOnlineSession,
+  deleteOnlineSession,
+
+  // Online Sessions (Student)
+  getStudentOnlineSessions,
 
   // Notifications
   getNotifications,

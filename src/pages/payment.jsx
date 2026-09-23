@@ -66,6 +66,10 @@ export default function Payment() {
         plan: selectedPlan,
         studentName: formData?.studentName || "",
         applicationId: applicationId || null,
+        // Tells the backend where to send the browser after Paystack
+        // verifies the payment. The backend should forward to this URL
+        // once verification succeeds.
+        callbackUrl: `${window.location.origin}/login?registered=true`,
       });
 
       if (!result?.authorization_url) {
@@ -73,8 +77,8 @@ export default function Payment() {
       }
 
       // Redirect the browser to Paystack's hosted checkout.
-      // Paystack will redirect back to /api/payments/verify?reference=... on completion,
-      // and the backend forwards the user to /admission/submitted.
+      // After payment, Paystack → /api/payments/verify?reference=...
+      // → backend verifies → redirects the browser to /login?registered=true
       window.location.href = result.authorization_url;
     } catch (error) {
       setPaymentProcessing(false);
@@ -246,14 +250,27 @@ export default function Payment() {
                 secure checkout where you can pay with:
               </p>
               <ul className="text-sm text-slate-600 space-y-1 pl-1">
-                <li>💳 Debit or credit card</li>
-                <li>🏦 Bank transfer</li>
-                <li>📱 USSD</li>
-                <li>🔐 Paystack account</li>
+                <li className="flex items-center gap-2">
+                  <i className="bx bx-credit-card text-lg text-cod-blue" aria-hidden="true" />
+                  Debit or credit card
+                </li>
+                <li className="flex items-center gap-2">
+                  <i className="bx bx-building-house text-lg text-cod-blue" aria-hidden="true" />
+                  Bank transfer
+                </li>
+                <li className="flex items-center gap-2">
+                  <i className="bx bx-mobile text-lg text-cod-blue" aria-hidden="true" />
+                  USSD
+                </li>
+                <li className="flex items-center gap-2">
+                  <i className="bx bx-lock-alt text-lg text-cod-blue" aria-hidden="true" />
+                  Paystack account
+                </li>
               </ul>
-              <p className="text-xs text-slate-500 pt-2 border-t border-slate-200">
-                🔒 All payments are processed securely by Paystack. Clan of
-                David Academy does not store your card details.
+              <p className="text-xs text-slate-500 pt-2 border-t border-slate-200 flex items-center gap-1.5">
+                <i className="bx bx-shield-quarter text-base text-cod-blue" aria-hidden="true" />
+                All payments are processed securely by Paystack. Clan of David
+                Academy does not store your card details.
               </p>
             </div>
           </section>

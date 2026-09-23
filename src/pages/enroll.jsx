@@ -11,6 +11,12 @@ export default function Enroll() {
   const [pendingAction, setPendingAction] = useState(null);
 
   const handleAction = (action) => {
+    // Admission form is only for students – skip role selection
+    if (action === 'purchase') {
+      navigate('/application');
+      return;
+    }
+
     setPendingAction(action);
     setShowRoleModal(true);
   };
@@ -19,18 +25,6 @@ export default function Enroll() {
     if (!pendingAction) return;
 
     setShowRoleModal(false);
-
-    if (pendingAction === 'purchase') {
-      if (role === 'student') {
-        navigate('/application');
-        return;
-      }
-      if (role === 'staff') {
-        navigate('/staff/signup');
-        return;
-      }
-      return;
-    }
 
     if (role === 'student') {
       navigate('/login?role=student');
@@ -100,7 +94,7 @@ export default function Enroll() {
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
             <h3 className="text-2xl font-bold text-slate-900 mb-2">Choose your account type</h3>
             <p className="text-sm text-slate-500 mb-6">
-              {pendingAction === 'purchase' ? 'Are you applying as a student or staff member?' : 'Which dashboard do you want to access?'}
+              Which dashboard do you want to access?
             </p>
 
             <div className="grid grid-cols-2 gap-3">
