@@ -15,7 +15,9 @@ h1, h2, h3, h4, .font-display {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Placeholder image blocks — replace with real images from src/assets */
+/* ═══════════════════════════════════════════════════════════
+   PLACEHOLDER BLOCKS
+   ═══════════════════════════════════════════════════════════ */
 .img-placeholder {
   display: flex;
   align-items: center;
@@ -35,94 +37,211 @@ h1, h2, h3, h4, .font-display {
   border-radius: inherit;
 }
 
-/* ─── Animations ─── */
+/* ═══════════════════════════════════════════════════════════
+   KEYFRAMES
+   ═══════════════════════════════════════════════════════════ */
 
+/* ─── Fade family ─── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+@keyframes fadeLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeRight {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
+/* ─── Zoom family ─── */
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes zoomOut {
+  from { opacity: 0; transform: scale(1.1); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.7); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Rotate / flip ─── */
+@keyframes flipIn {
+  0%   { opacity: 0; transform: perspective(400px) rotateY(-90deg); }
+  100% { opacity: 1; transform: perspective(400px) rotateY(0); }
+}
+@keyframes rotateIn {
+  0%   { opacity: 0; transform: rotate(-180deg) scale(0.5); }
+  100% { opacity: 1; transform: rotate(0) scale(1); }
+}
+
+/* ─── Slide ─── */
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(30px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-30px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
+/* ─── Continuous / decorative ─── */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.5; }
 }
-
-@keyframes bounce {
+@keyframes bounceSoft {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-10px); }
 }
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(2deg); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
 
-/* ─── Utility classes for animations ─── */
+/* ═══════════════════════════════════════════════════════════
+   UTILITY CLASSES — ENTRANCE (runs immediately on load)
+   ═══════════════════════════════════════════════════════════ */
 
-.animate-fadeUp {
-  animation: fadeUp 0.6s ease-out forwards;
+.animate-fadeUp      { animation: fadeUp 0.6s ease-out forwards;      opacity: 0; }
+.animate-fadeDown    { animation: fadeDown 0.6s ease-out forwards;    opacity: 0; }
+.animate-fadeIn      { animation: fadeIn 0.6s ease-out forwards;      opacity: 0; }
+.animate-fadeLeft    { animation: fadeLeft 0.6s ease-out forwards;    opacity: 0; }
+.animate-fadeRight   { animation: fadeRight 0.6s ease-out forwards;   opacity: 0; }
+
+.animate-zoomIn      { animation: zoomIn 0.6s ease-out forwards;      opacity: 0; }
+.animate-zoomOut     { animation: zoomOut 0.6s ease-out forwards;     opacity: 0; }
+.animate-popIn       { animation: popIn 0.5s cubic-bezier(.34,1.56,.64,1) forwards; opacity: 0; }
+.animate-flipIn      { animation: flipIn 0.7s ease-out forwards;      opacity: 0; }
+.animate-rotateIn    { animation: rotateIn 0.8s ease-out forwards;    opacity: 0; }
+
+.animate-slideDown   { animation: slideDown 0.6s ease-out forwards;   opacity: 0; }
+.animate-slideUp     { animation: slideUp 0.6s ease-out forwards;     opacity: 0; }
+.animate-slideInRight{ animation: slideInRight 0.6s ease-out forwards; opacity: 0; }
+.animate-slideInLeft { animation: slideInLeft 0.6s ease-out forwards;  opacity: 0; }
+.animate-scaleIn     { animation: zoomIn 0.5s ease-out forwards;      opacity: 0; }
+
+/* ─── Continuous ─── */
+.animate-pulse       { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.animate-bounce      { animation: bounceSoft 1s ease-in-out infinite; }
+.animate-float       { animation: float 4s ease-in-out infinite; }
+.animate-wiggle      { animation: wiggle 1.2s ease-in-out infinite; }
+.animate-spinSlow    { animation: spinSlow 8s linear infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 6s ease infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL-TRIGGERED ANIMATIONS
+   ═══════════════════════════════════════════════════════════
+   These elements start hidden. The `Reveal` component (or
+   Intersection Observer) adds `.is-visible` to trigger the
+   animation with the specified `variant`.
+   ═══════════════════════════════════════════════════════════ */
+
+.reveal {
   opacity: 0;
+  will-change: opacity, transform;
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-out forwards;
-  opacity: 0;
+/* Variants — how the element animates IN */
+.reveal.fade-up    { transform: translateY(40px); }
+.reveal.fade-down  { transform: translateY(-40px); }
+.reveal.fade-left  { transform: translateX(40px); }
+.reveal.fade-right { transform: translateX(-40px); }
+.reveal.zoom-in    { transform: scale(0.9); }
+.reveal.zoom-out   { transform: scale(1.08); }
+.reveal.flip-in    { transform: perspective(600px) rotateY(-60deg); transform-origin: left center; }
+.reveal.rotate-in  { transform: rotate(-10deg) scale(0.9); }
+.reveal.fade       { /* no transform */ }
+
+/* When visible → animate to natural state */
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.animate-slideDown {
-  animation: slideDown 0.6s ease-out forwards;
-  opacity: 0;
-}
+/* Stagger delays (add to children via inline style or class) */
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+.reveal-delay-4 { transition-delay: 0.32s; }
+.reveal-delay-5 { transition-delay: 0.40s; }
+.reveal-delay-6 { transition-delay: 0.48s; }
+.reveal-delay-7 { transition-delay: 0.56s; }
+.reveal-delay-8 { transition-delay: 0.64s; }
 
-.animate-slideUp {
-  animation: slideUp 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-slideInRight {
-  animation: slideInRight 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-slideInLeft {
-  animation: slideInLeft 0.6s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-scaleIn {
-  animation: scaleIn 0.5s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-bounce {
-  animation: bounce 1s ease-in-out infinite;
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .animate-fadeUp,
+  .animate-fadeDown,
+  .animate-fadeIn,
+  .animate-fadeLeft,
+  .animate-fadeRight,
+  .animate-zoomIn,
+  .animate-zoomOut,
+  .animate-popIn,
+  .animate-flipIn,
+  .animate-rotateIn,
+  .animate-slideDown,
+  .animate-slideUp,
+  .animate-slideInRight,
+  .animate-slideInLeft,
+  .animate-scaleIn,
+  .animate-float,
+  .animate-wiggle,
+  .animate-spinSlow,
+  .animate-shimmer,
+  .animate-gradient {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

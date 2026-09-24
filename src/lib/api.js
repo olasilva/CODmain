@@ -372,7 +372,7 @@ export async function getNewsPost(slug) {
   return request(`/news/${slug}`);
 }
 
-// ============ CONTACT & NEWSLETTER ============
+// ============ CONTACT & NEWSLETTER (public) ============
 
 export async function submitContactMessage(message) {
   return request("/contact", {
@@ -385,6 +385,32 @@ export async function subscribeToNewsletter(email) {
   return request("/newsletter", {
     method: "POST",
     body: JSON.stringify({ email }),
+  });
+}
+
+// ============ ADMIN — CONTACT INBOX ============
+
+export async function getContactMessages(params = {}) {
+  const qs = new URLSearchParams(params).toString();
+  return request(`/admin/contact-messages${qs ? "?" + qs : ""}`);
+}
+
+export async function markContactMessageRead(id) {
+  return request(`/admin/contact-messages/${id}/read`, {
+    method: "PUT",
+  });
+}
+
+export async function replyToContactMessage(id, replyText) {
+  return request(`/admin/contact-messages/${id}/reply`, {
+    method: "POST",
+    body: JSON.stringify({ replyText }),
+  });
+}
+
+export async function deleteContactMessage(id) {
+  return request(`/admin/contact-messages/${id}`, {
+    method: "DELETE",
   });
 }
 
@@ -855,9 +881,15 @@ export default {
   getNews,
   getNewsPost,
 
-  // Contact
+  // Contact & Newsletter (public)
   submitContactMessage,
   subscribeToNewsletter,
+
+  // Admin — contact inbox
+  getContactMessages,
+  markContactMessageRead,
+  replyToContactMessage,
+  deleteContactMessage,
 
   // Admin — dashboard
   getAdminStats,

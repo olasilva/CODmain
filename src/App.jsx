@@ -56,6 +56,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 import AdminStudentProfile from './pages/admin/AdminStudentprofile';
 import AdminStudentResults from './pages/admin/AdminStudentResults';
 import AdminBlog from './pages/admin/AdminBlog';
+import AdminMessages from './pages/admin/AdminMessages';
 
 // ─── Admin shells ───
 import AdminLogin from './pages/admin/AdminLogin';
@@ -225,6 +226,9 @@ export default function App() {
             {/* Blog & News */}
             <Route path="blog" element={<AdminBlog />} />
             <Route path="news" element={<AdminBlog />} />
+
+            {/* Messages inbox */}
+            <Route path="messages" element={<AdminMessages />} />
 
             {/* 404 fallback within /admin — keep this last */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
