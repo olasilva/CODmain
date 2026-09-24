@@ -1,25 +1,27 @@
 // src/pages/admin/components/AdminHeader.jsx
-import React from 'react';
-
-export default function AdminHeader() {
+export default function AdminHeader({ onMenuClick }) {
   return (
-    <div className="h-[98px] bg-[#F3F4F6] border-b border-black/30 flex items-center justify-between px-8">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-[#1A73E8] rounded-xl flex items-center justify-center text-white font-bold text-xl">
-          C
-        </div>
-        <span className="text-3xl font-bold text-black font-ebrima leading-[22px]">
-          Admin Panel
-        </span>
-      </div>
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-black/5 px-4 sm:px-6 py-3 flex items-center gap-3">
+      {/* Hamburger — mobile only */}
+      <button
+        type="button"
+        onClick={onMenuClick}
+        aria-label="Open menu"
+        className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-black/5 text-black/70 transition"
+      >
+        <svg
+          className="w-6 h-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-          <svg className="w-10 h-10 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-          </svg>
-        </div>
-      </div>
-    </div>
+      {/* ...rest of your existing header content... */}
+    </header>
   );
 }

@@ -9,7 +9,7 @@ import {
   ReportsIcon,
   SettingsIcon,
   LogoutIcon,
-  NewsIcon,          // 👈 add this to BoxIcons.jsx
+  NewsIcon,
 } from '../../../components/BoxIcons';
 import logo from '../../../assets/logo.jpg';
 
@@ -20,26 +20,56 @@ const menuItems = [
   { icon: CoursesIcon, label: 'Courses', path: '/admin/courses' },
   { icon: PaymentsIcon, label: 'Payments', path: '/admin/payments' },
   { icon: ReportsIcon, label: 'Reports', path: '/admin/reports' },
-  { icon: NewsIcon, label: 'Blog & News', path: '/admin/blog' },   // 👈 NEW
+  { icon: NewsIcon, label: 'Blog & News', path: '/admin/blog' },
   { icon: SettingsIcon, label: 'Settings', path: '/admin/settings' },
 ];
 
-export default function AdminSidebar({ activeItem }) {
+export default function AdminSidebar({ activeItem, isOpen = false, onClose }) {
   return (
-    <div className="w-[300px] min-h-screen bg-[#1A73E8] fixed left-0 top-0 overflow-y-auto">
+    <aside
+      className={`
+        fixed left-0 top-0 h-screen w-[300px] z-50
+        bg-[#1A73E8] overflow-y-auto
+        transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0
+      `}
+    >
       <div className="p-8">
-        <div className="flex items-center gap-3 mb-8">
-          <img
-            src={logo}
-            alt="Clan of David"
-            className="w-12 h-12 rounded-xl object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-          <span className="text-white text-2xl font-bold font-ebrima">
-            Clan of David
-          </span>
+        {/* Logo + close button (mobile only) */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <img
+              src={logo}
+              alt="Clan of David"
+              className="w-12 h-12 rounded-xl object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <span className="text-white text-2xl font-bold font-ebrima">
+              Clan of David
+            </span>
+          </div>
+
+          {/* Close X — mobile only */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+            className="lg:hidden text-white/80 hover:text-white transition p-1"
+          >
+            <svg
+              className="w-6 h-6"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
+              <path d="M6 6l12 12M18 6l-12 12" />
+            </svg>
+          </button>
         </div>
 
         {/* Navigation */}
@@ -48,6 +78,7 @@ export default function AdminSidebar({ activeItem }) {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
                   isActive || activeItem === item.label
@@ -75,6 +106,6 @@ export default function AdminSidebar({ activeItem }) {
           </button>
         </nav>
       </div>
-    </div>
+    </aside>
   );
 }
