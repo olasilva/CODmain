@@ -34,6 +34,7 @@ import StudentResults from './pages/student/StudentResults';
 import StudentMessages from './pages/student/StudentMessages';
 import StudentNotifications from './pages/student/StudentNotifications';
 import StudentSettings from './pages/student/StudentSettings';
+import StudentAttendance from './pages/student/StudentAttendance'; // ← NEW
 
 // ─── Staff dashboard ───
 import StaffDashboard from './pages/staff/StaffDashboard';
@@ -72,7 +73,12 @@ export default function App() {
   }, []);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       {isLoading && <Loader />}
       <div className="font-body">
         <Routes>
@@ -148,6 +154,7 @@ export default function App() {
             element={<StudentNotifications />}
           />
           <Route path="/student/settings" element={<StudentSettings />} />
+          <Route path="/student/attendance" element={<StudentAttendance />} /> {/* ← NEW */}
 
           {/* ═══════════════ Staff Dashboard ═══════════════ */}
           <Route path="/staff" element={<StaffDashboard />} />
@@ -184,7 +191,7 @@ export default function App() {
             }
           />
 
-          {/* Guarded admin panel — every child route renders inside AdminLayout */}
+          {/* Guarded admin panel */}
           <Route
             path="/admin"
             element={
@@ -230,7 +237,7 @@ export default function App() {
             {/* Messages inbox */}
             <Route path="messages" element={<AdminMessages />} />
 
-            {/* 404 fallback within /admin — keep this last */}
+            {/* 404 fallback within /admin */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 

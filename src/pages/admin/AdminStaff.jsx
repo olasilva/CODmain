@@ -15,6 +15,74 @@ import {
 import useFetch from '../../lib/useFetch';
 import Avatar from '../../components/Avatar';
 
+// ─── Category definitions ───
+const REGULAR_LEVELS = [
+  'Nursery 1',
+  'Nursery 2',
+  'Nursery 3',
+  'Primary 1',
+  'Primary 2',
+  'Primary 3',
+  'Primary 4',
+  'Primary 5',
+];
+
+const MUSIC_LEVELS = [
+  'Piano',
+  'Keyboard',
+  'Acoustic Guitar',
+  'Electric Guitar',
+  'Bass Guitar',
+  'Violin',
+  'Cello',
+  'Flute',
+  'Saxophone',
+  'Trumpet',
+  'Drums',
+  'Percussion',
+  'Vocals / Voice Training',
+];
+
+const CATEGORIES = [
+  {
+    value: 'regular',
+    label: 'Regular Track',
+    desc: 'Nursery – Primary 5 academic classes',
+    icon: 'bx-book-open',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    pill: 'bg-blue-100 text-blue-700',
+    levels: REGULAR_LEVELS,
+    levelsLabel: 'Classes',
+  },
+  {
+    value: 'music',
+    label: 'Music Track',
+    desc: 'Instrument and vocal training',
+    icon: 'bx-music',
+    color: 'text-pink-600',
+    bg: 'bg-pink-50',
+    pill: 'bg-pink-100 text-pink-700',
+    levels: MUSIC_LEVELS,
+    levelsLabel: 'Instruments',
+  },
+  {
+    value: 'mixed',
+    label: 'Mixed Track',
+    desc: 'Both academics and music',
+    icon: 'bx-shuffle',
+    color: 'text-purple-600',
+    bg: 'bg-purple-50',
+    pill: 'bg-purple-100 text-purple-700',
+    levels: [...REGULAR_LEVELS, ...MUSIC_LEVELS],
+    levelsLabel: 'Levels',
+  },
+];
+
+function categoryMeta(value) {
+  return CATEGORIES.find((c) => c.value === value) || null;
+}
+
 export default function AdminStaff() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,8 +124,10 @@ export default function AdminStaff() {
 
       {/* Info banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-sm text-blue-800">
-        <strong>Tip:</strong> Click any staff row to view their details,
-        create or reset their password, and edit or delete their account.
+        <strong>Tip:</strong> Use <strong>Assign</strong> to set a staff
+        member's category (Regular / Music / Mixed) and specific levels. When a
+        student enrolls in a matching category, the staff member gets notified
+        automatically.
       </div>
 
       {/* Success card */}
@@ -117,7 +187,7 @@ export default function AdminStaff() {
       {/* Staff list */}
       <div className="bg-white rounded-2xl border border-black/10 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px]">
+          <table className="w-full min-w-[860px]">
             <thead className="bg-[#F8F9FA] border-b border-black/10">
               <tr>
                 <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">
@@ -125,6 +195,9 @@ export default function AdminStaff() {
                 </th>
                 <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">
                   Role
+                </th>
+                <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">
+                  Category
                 </th>
                 <th className="text-left py-3.5 px-5 text-xs font-bold text-black/55 uppercase">
                   Classes
@@ -140,14 +213,14 @@ export default function AdminStaff() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-black/50">
+                  <td colSpan={6} className="py-10 text-center text-black/50">
                     Loading staff…
                   </td>
                 </tr>
               )}
               {!loading && staff.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-10 text-center text-black/50">
+                  <td colSpan={6} className="py-10 text-center text-black/50">
                     No staff accounts yet. Click "Add Staff" to create one.
                   </td>
                 </tr>
@@ -205,7 +278,7 @@ export default function AdminStaff() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Staff row — click anywhere on the row to open details
+// Staff row
 // ═══════════════════════════════════════════════════════════════
 function StaffRow({ user, index, onOpen, onAssign }) {
   const [classes, setClasses] = useState(null);
@@ -223,6 +296,11 @@ function StaffRow({ user, index, onOpen, onAssign }) {
       cancelled = true;
     };
   }, [user.id]);
+
+  const cat = categoryMeta(user.staff_category);
+  const levelCount = Array.isArray(user.staff_levels)
+    ? user.staff_levels.length
+    : 0;
 
   return (
     <tr
@@ -254,13 +332,28 @@ function StaffRow({ user, index, onOpen, onAssign }) {
         </span>
       </td>
       <td className="py-3 px-5">
+        {cat ? (
+          <span
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${cat.pill}`}
+          >
+            <i className={`bx ${cat.icon} text-sm`} aria-hidden="true" />
+            {cat.label.replace(' Track', '')}
+            {levelCount > 0 && (
+              <span className="text-[10px] opacity-70">({levelCount})</span>
+            )}
+          </span>
+        ) : (
+          <span className="text-xs text-black/40 italic">Not set</span>
+        )}
+      </td>
+      <td className="py-3 px-5">
         {classes === null ? (
           <span className="text-xs text-black/40">…</span>
         ) : classes.length === 0 ? (
-          <span className="text-xs text-black/40 italic">None assigned</span>
+          <span className="text-xs text-black/40 italic">None</span>
         ) : (
           <div className="flex flex-wrap gap-1 max-w-xs">
-            {classes.slice(0, 3).map((c) => (
+            {classes.slice(0, 2).map((c) => (
               <span
                 key={c.id}
                 className="px-2 py-0.5 bg-blue-50 text-[#1A73E8] rounded text-xs font-bold"
@@ -268,9 +361,9 @@ function StaffRow({ user, index, onOpen, onAssign }) {
                 {c.title || c.subject || 'Class'}
               </span>
             ))}
-            {classes.length > 3 && (
+            {classes.length > 2 && (
               <span className="px-2 py-0.5 bg-gray-100 text-black/60 rounded text-xs font-bold">
-                +{classes.length - 3} more
+                +{classes.length - 2}
               </span>
             )}
           </div>
@@ -294,7 +387,7 @@ function StaffRow({ user, index, onOpen, onAssign }) {
             }}
             className="px-4 py-2 bg-[#1A73E8] text-white text-xs font-bold rounded-lg hover:bg-blue-700"
           >
-            Assign Classes
+            Assign
           </button>
           <button
             onClick={(e) => {
@@ -313,7 +406,7 @@ function StaffRow({ user, index, onOpen, onAssign }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Staff Details Modal — view + edit + create/reset password + delete
+// Staff Details Modal
 // ═══════════════════════════════════════════════════════════════
 function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
   const [staff, setStaff] = useState(initial);
@@ -322,7 +415,6 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
   const [error, setError] = useState('');
   const [savedMsg, setSavedMsg] = useState('');
 
-  // Editable fields
   const [form, setForm] = useState({
     fullName: initial.full_name || '',
     phone: initial.phone || '',
@@ -330,7 +422,6 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
   });
   const [saving, setSaving] = useState(false);
 
-  // Password state
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState(null);
   const [passwordLoading, setPasswordLoading] = useState(true);
@@ -338,11 +429,9 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
   const [generatingPassword, setGeneratingPassword] = useState(false);
   const [generateMsg, setGenerateMsg] = useState('');
 
-  // Delete state
   const [deleteStep, setDeleteStep] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // ---------- Load details + password on mount ----------
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -379,7 +468,6 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
     };
   }, [staff.id]);
 
-  // ---------- Save name / phone / department ----------
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.fullName.trim()) {
@@ -402,7 +490,6 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
     }
   };
 
-  // ---------- Copy password ----------
   const copyPassword = () => {
     if (!password?.temporaryPassword) return;
     navigator.clipboard?.writeText(password.temporaryPassword);
@@ -410,7 +497,6 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
     setTimeout(() => setCopied(false), 1800);
   };
 
-  // ---------- Generate / regenerate password ----------
   const handleGeneratePassword = async () => {
     if (
       password &&
@@ -448,7 +534,6 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
     }
   };
 
-  // ---------- Delete ----------
   const handleDelete = async () => {
     setDeleting(true);
     setError('');
@@ -460,6 +545,9 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
       setDeleting(false);
     }
   };
+
+  const cat = categoryMeta(staff.staff_category);
+  const levels = Array.isArray(staff.staff_levels) ? staff.staff_levels : [];
 
   return (
     <div
@@ -520,7 +608,50 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
 
           {!loading && (
             <>
-              {/* -------- Password section -------- */}
+              {/* Category summary */}
+              {cat && (
+                <section>
+                  <h3 className="text-sm font-bold text-black/70 uppercase tracking-wide mb-3">
+                    Teaching Category
+                  </h3>
+                  <div className="rounded-xl border border-black/10 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${cat.bg} ${cat.color}`}
+                      >
+                        <i className={`bx ${cat.icon} text-xl`} aria-hidden="true" />
+                      </span>
+                      <div>
+                        <p className="font-bold text-black font-ebrima">
+                          {cat.label}
+                        </p>
+                        <p className="text-xs text-black/50">
+                          {cat.desc}
+                        </p>
+                      </div>
+                    </div>
+                    {levels.length > 0 && (
+                      <>
+                        <p className="text-[10px] uppercase tracking-wider font-bold text-black/40 mb-2">
+                          {cat.levelsLabel} ({levels.length})
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {levels.map((lvl) => (
+                            <span
+                              key={lvl}
+                              className={`px-2.5 py-1 rounded-full text-xs font-bold ${cat.pill}`}
+                            >
+                              {lvl}
+                            </span>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Password section */}
               <section>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-bold text-black/70 uppercase tracking-wide">
@@ -629,7 +760,7 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
                 </div>
               </section>
 
-              {/* -------- Editable details -------- */}
+              {/* Editable details */}
               <section>
                 <h3 className="text-sm font-bold text-black/70 uppercase tracking-wide mb-3">
                   Staff Details
@@ -709,7 +840,7 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
                 </form>
               </section>
 
-              {/* -------- Assigned classes -------- */}
+              {/* Assigned classes */}
               {classes.length > 0 && (
                 <section>
                   <h3 className="text-sm font-bold text-black/70 uppercase tracking-wide mb-3">
@@ -729,7 +860,7 @@ function StaffDetailsModal({ staff: initial, onClose, onSaved, onDeleted }) {
                 </section>
               )}
 
-              {/* -------- Danger zone -------- */}
+              {/* Danger zone */}
               <section className="pt-4 border-t border-black/10">
                 <h3 className="text-sm font-bold text-red-600 uppercase tracking-wide mb-3">
                   Danger Zone
@@ -913,11 +1044,19 @@ function CreateStaffModal({ onClose, onCreated }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Assign Staff Modal
+// Assign Staff Modal — category + levels + classes
 // ═══════════════════════════════════════════════════════════════
 function AssignStaffModal({ staff, onClose, onSaved }) {
+  // Category + levels
+  const [category, setCategory] = useState(staff.staff_category || '');
+  const [levels, setLevels] = useState(
+    Array.isArray(staff.staff_levels) ? staff.staff_levels : []
+  );
+
+  // Classes
   const [classes, setClasses] = useState([]);
-  const [selected, setSelected] = useState([]);
+  const [selectedClassIds, setSelectedClassIds] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -933,7 +1072,7 @@ function AssignStaffModal({ staff, onClose, onSaved }) {
         ]);
         if (cancelled) return;
         setClasses(allRes?.classes || []);
-        setSelected((mineRes?.classes || []).map((c) => c.id));
+        setSelectedClassIds((mineRes?.classes || []).map((c) => c.id));
       } catch (err) {
         if (!cancelled) setError(err.message || 'Failed to load classes');
       } finally {
@@ -945,22 +1084,38 @@ function AssignStaffModal({ staff, onClose, onSaved }) {
     };
   }, [staff.id]);
 
-  const toggle = (classId) => {
-    setSelected((prev) =>
+  const toggleClass = (classId) => {
+    setSelectedClassIds((prev) =>
       prev.includes(classId)
         ? prev.filter((id) => id !== classId)
         : [...prev, classId]
     );
   };
 
-  const selectAll = () => setSelected(classes.map((c) => c.id));
-  const clearAll = () => setSelected([]);
+  const toggleLevel = (lvl) => {
+    setLevels((prev) =>
+      prev.includes(lvl) ? prev.filter((l) => l !== lvl) : [...prev, lvl]
+    );
+  };
+
+  const handleCategoryChange = (value) => {
+    setCategory(value);
+    setLevels([]);
+  };
+
+  const activeCategory = CATEGORIES.find((c) => c.value === category);
 
   const save = async () => {
     setSaving(true);
     setError('');
     try {
-      await assignStaffToClasses(staff.id, selected);
+      await Promise.all([
+        assignStaffToClasses(staff.id, selectedClassIds),
+        updateStaffAccount(staff.id, {
+          staff_category: category || null,
+          staff_levels: levels,
+        }),
+      ]);
       onSaved();
     } catch (err) {
       setError(err.message || 'Failed to save');
@@ -970,19 +1125,20 @@ function AssignStaffModal({ staff, onClose, onSaved }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[85vh] flex flex-col"
+        className="bg-white rounded-2xl max-w-3xl w-full p-6 max-h-[90vh] flex flex-col my-8"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-start mb-4">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-5">
           <div className="flex items-center gap-3">
             <Avatar src={staff.avatar_url} name={staff.full_name} size={48} />
             <div>
-              <h2 className="text-xl font-bold text-black">
-                Assign Classes to {staff.full_name}
+              <h2 className="text-xl font-bold text-black font-ebrima">
+                Assign {staff.full_name}
               </h2>
               <p className="text-sm text-black/50 mt-0.5">{staff.email}</p>
             </div>
@@ -1001,81 +1157,200 @@ function AssignStaffModal({ staff, onClose, onSaved }) {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm text-black/60">
-            Selected <strong className="text-black">{selected.length}</strong>{' '}
-            of {classes.length}
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={selectAll}
-              className="text-xs font-bold text-[#1A73E8] hover:underline"
-            >
-              Select all
-            </button>
-            <span className="text-black/20">|</span>
-            <button
-              onClick={clearAll}
-              className="text-xs font-bold text-red-500 hover:underline"
-            >
-              Clear all
-            </button>
-          </div>
-        </div>
+        <div className="flex-1 overflow-y-auto pr-1">
+          {/* Step 1: Category */}
+          <section className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="h-7 w-7 rounded-full bg-[#FF2E96]/10 text-[#FF2E96] flex items-center justify-center text-xs font-bold">
+                1
+              </span>
+              <h3 className="font-bold text-black font-ebrima">
+                Choose a Category
+              </h3>
+            </div>
 
-        <div className="flex-1 overflow-y-auto border border-black/10 rounded-xl mb-4">
-          {loading && (
-            <div className="p-8 text-center text-black/50 text-sm">
-              Loading classes…
-            </div>
-          )}
-          {!loading && classes.length === 0 && (
-            <div className="p-8 text-center text-black/50 text-sm">
-              No classes exist yet. Create classes first.
-            </div>
-          )}
-          {!loading &&
-            classes.map((c, idx) => {
-              const isSelected = selected.includes(c.id);
-              return (
-                <label
-                  key={c.id}
-                  className={`flex items-center gap-3 p-3 cursor-pointer border-b border-black/5 last:border-0 transition ${
-                    isSelected
-                      ? 'bg-blue-50'
-                      : idx % 2 === 0
-                      ? 'bg-white'
-                      : 'bg-[#FAFAFA]'
-                  } hover:bg-blue-50/50`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggle(c.id)}
-                    className="h-4 w-4 accent-[#1A73E8]"
-                  />
-                  <div className="flex-1">
-                    <div className="font-bold text-black text-sm">
-                      {c.title || c.subject || 'Unnamed Class'}
-                    </div>
-                    <div className="text-xs text-black/50">
-                      {c.schedule || 'No schedule'}
-                      {c.instructor && c.instructor.id !== staff.id && (
-                        <>
-                          {' · '}
-                          <span className="text-orange-600">
-                            Currently taught by {c.instructor.full_name}
-                          </span>
-                        </>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {CATEGORIES.map((c) => {
+                const active = category === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => handleCategoryChange(c.value)}
+                    className={`text-left rounded-2xl border-2 p-4 transition-all ${
+                      active
+                        ? 'border-[#1A73E8] bg-[#F5F9FF] shadow-md'
+                        : 'border-black/10 bg-white hover:border-[#1A73E8]/40'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <span
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+                          active
+                            ? 'bg-[#1A73E8] text-white'
+                            : `${c.bg} ${c.color}`
+                        }`}
+                      >
+                        <i
+                          className={`bx ${c.icon} text-xl`}
+                          aria-hidden="true"
+                        />
+                      </span>
+                      {active && (
+                        <span className="h-5 w-5 rounded-full bg-[#1A73E8] text-white flex items-center justify-center">
+                          <i
+                            className="bx bx-check text-sm"
+                            aria-hidden="true"
+                          />
+                        </span>
                       )}
                     </div>
-                  </div>
-                </label>
-              );
-            })}
+                    <p
+                      className={`font-bold text-sm font-ebrima ${
+                        active ? 'text-[#1A73E8]' : 'text-black/80'
+                      }`}
+                    >
+                      {c.label}
+                    </p>
+                    <p className="text-xs text-black/50 mt-1 font-ebrima leading-snug">
+                      {c.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Step 2: Levels */}
+          {activeCategory && (
+            <section className="mb-6 animate-fadeUp">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="h-7 w-7 rounded-full bg-[#FF2E96]/10 text-[#FF2E96] flex items-center justify-center text-xs font-bold">
+                  2
+                </span>
+                <h3 className="font-bold text-black font-ebrima">
+                  Choose {activeCategory.levelsLabel}
+                </h3>
+                <span className="text-xs text-black/40 font-ebrima">
+                  ({levels.length} selected)
+                </span>
+              </div>
+
+              <p className="text-xs text-black/50 mb-3 font-ebrima">
+                {levels.length === 0
+                  ? `Select nothing to see ALL students in ${activeCategory.label}.`
+                  : `Students in these ${activeCategory.levelsLabel.toLowerCase()} will be assigned to this staff member.`}
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {activeCategory.levels.map((lvl) => {
+                  const active = levels.includes(lvl);
+                  return (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => toggleLevel(lvl)}
+                      className={`px-4 py-2 rounded-full text-xs font-bold transition border-2 ${
+                        active
+                          ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                          : 'bg-white text-black/60 border-black/10 hover:border-[#1A73E8]/40'
+                      }`}
+                    >
+                      {active && (
+                        <i
+                          className="bx bx-check mr-1"
+                          aria-hidden="true"
+                        />
+                      )}
+                      {lvl}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {levels.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setLevels([])}
+                  className="mt-3 text-xs font-bold text-red-500 hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
+            </section>
+          )}
+
+          {/* Step 3: Classes */}
+          <section className="mb-2">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <span className="h-7 w-7 rounded-full bg-[#FF2E96]/10 text-[#FF2E96] flex items-center justify-center text-xs font-bold">
+                  3
+                </span>
+                <h3 className="font-bold text-black font-ebrima">
+                  Assign Classes
+                </h3>
+              </div>
+              <p className="text-xs text-black/50">
+                {selectedClassIds.length} of {classes.length}
+              </p>
+            </div>
+
+            <p className="text-xs text-black/50 mb-3 font-ebrima">
+              Optional. Adds students to this staff member's class roster.
+            </p>
+
+            {loading ? (
+              <div className="py-6 text-center text-black/50 text-sm">
+                Loading classes…
+              </div>
+            ) : classes.length === 0 ? (
+              <div className="py-6 text-center text-black/50 text-sm">
+                No classes exist yet.
+              </div>
+            ) : (
+              <div className="border border-black/10 rounded-xl max-h-52 overflow-y-auto">
+                {classes.map((c) => {
+                  const isSelected = selectedClassIds.includes(c.id);
+                  return (
+                    <label
+                      key={c.id}
+                      className={`flex items-center gap-3 p-3 cursor-pointer border-b border-black/5 last:border-0 transition ${
+                        isSelected ? 'bg-blue-50' : 'hover:bg-black/[0.02]'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleClass(c.id)}
+                        className="h-4 w-4 accent-[#1A73E8]"
+                      />
+                      <div className="flex-1">
+                        <div className="font-bold text-black text-sm">
+                          {c.title || c.subject || 'Unnamed Class'}
+                        </div>
+                        <div className="text-xs text-black/50">
+                          {c.schedule || 'No schedule'}
+                          {c.instructor && c.instructor.id !== staff.id && (
+                            <>
+                              {' · '}
+                              <span className="text-orange-600">
+                                Currently taught by {c.instructor.full_name}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
 
-        <div className="flex gap-3 pt-2">
+        {/* Footer */}
+        <div className="flex gap-3 pt-4 border-t border-black/5 mt-4">
           <button
             type="button"
             onClick={onClose}

@@ -178,10 +178,20 @@ function id(prefix) {
 // ============ AUTHENTICATION ============
 
 export async function registerUser(user) {
-  return request("/auth/register", {
+  const data = await request("/auth/register", {
     method: "POST",
     body: JSON.stringify(user),
   });
+
+  if (data?.token && data?.user) {
+    const role = data.user.role || "student";
+    localStorage.setItem(`cod-${role}-token`, data.token);
+    localStorage.setItem(`cod-${role}-session`, JSON.stringify(data.user));
+    localStorage.setItem("cod-active-role", role);
+    console.log(`✅ Registered and logged in as ${role}:`, data.user.email);
+  }
+
+  return data;
 }
 
 export async function loginUser(credentials) {
@@ -690,6 +700,24 @@ export async function sendStaffMessage(data) {
   });
 }
 
+// ============ STAFF — ATTENDANCE ============
+
+export async function getAttendanceStudents(date) {
+  const qs = date ? `?date=${date}` : "";
+  return request(`/staff/attendance/students${qs}`);
+}
+
+export async function markStaffAttendance(date, records) {
+  return request("/staff/attendance", {
+    method: "POST",
+    body: JSON.stringify({ date, records }),
+  });
+}
+
+export async function getAttendanceHistory(days = 30) {
+  return request(`/staff/attendance/history?days=${days}`);
+}
+
 // ============ ONLINE SESSIONS (STAFF) ============
 
 export async function createOnlineSession(data) {
@@ -777,6 +805,18 @@ export async function getResultDetails(resultId) {
   return request(`/student/results/${resultId}`);
 }
 
+// ============ STUDENT — FEES ============
+
+export async function getMyFees() {
+  return request("/student/fees");
+}
+
+// ============ STUDENT — ATTENDANCE ============
+
+export async function getMyAttendance(days = 30) {
+  return request(`/student/attendance?days=${days}`);
+}
+
 // ============ SETTINGS ============
 
 export async function getSettings() {
@@ -823,8 +863,36 @@ export async function getUnreadMessageCount() {
   return request("/student/messages/unread-count");
 }
 
+// Student — submit own attendance
+export async function submitMyAttendance(data) {
+  return request('/student/attendance', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// Staff — view student submissions
+export async function getAttendanceSubmissions(date) {
+  const qs = date ? `?date=${date}` : '';
+  return request(`/staff/attendance/submissions${qs}`);
+}
 // ============ EXPORT DEFAULTS ============
 
+
+export async function getMyTeachers() {
+  return request('/student/teachers');
+}
+
+export async function getConversationWithTeacher(teacherUserId) {
+  return request(`/student/messages/${teacherUserId}`);
+}
+
+export async function sendMessageToTeacher(teacherUserId, body) {
+  return request('/student/messages', {
+    method: 'POST',
+    body: JSON.stringify({ teacherUserId, body }),
+  });
+}
 export default {
   // Auth
   registerUser,
@@ -957,6 +1025,12 @@ export default {
   getStaffConversation,
   sendStaffMessage,
 
+  // Staff — Attendance
+  getAttendanceStudents,
+  markStaffAttendance,
+  getAttendanceHistory,
+  getAttendanceSubmissions,
+
   // Online Sessions (Staff)
   createOnlineSession,
   getStaffOnlineSessions,
@@ -984,6 +1058,12 @@ export default {
   getResults,
   getResultDetails,
 
+  // Student — Fees
+  getMyFees,
+
+  // Student — Attendance
+  getMyAttendance,
+
   // Settings
   getSettings,
   updateSettings,
@@ -997,4 +1077,9 @@ export default {
   sendMessage,
   markMessageRead,
   getUnreadMessageCount,
+
+   // Student — Fees
+  getMyFees,
+  getMyAttendance,
+  submitMyAttendance, 
 };

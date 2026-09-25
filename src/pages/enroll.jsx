@@ -13,7 +13,7 @@ export default function Enroll() {
   const handleAction = (action) => {
     // Admission form is only for students – skip role selection
     if (action === 'purchase') {
-      navigate('/application');
+      navigate('/admission/create-account');
       return;
     }
 
@@ -43,13 +43,12 @@ export default function Enroll() {
 
       {/* Main Enroll Content Area */}
       <main className="flex-1 flex flex-col md:flex-row w-full font-sans">
-        
         {/* Left Sidebar Banner */}
         <div className="w-full md:w-[450px] min-h-[350px] md:min-h-full bg-gradient-to-b from-[#1A73E8] to-[#0F4082] flex flex-col items-center justify-center p-8 text-white text-center shadow-lg">
           <div className="flex flex-col items-center max-w-[312px] gap-7">
-            <img 
-              src={logo} 
-              alt="Clan of David Logo" 
+            <img
+              src={logo}
+              alt="Clan of David Logo"
               className="w-[124px] h-[125px] rounded-xl object-cover shadow-md"
             />
             <h1 className="text-2xl md:text-3xl font-bold tracking-wide uppercase leading-snug font-sans">
@@ -61,13 +60,12 @@ export default function Enroll() {
         {/* Right Content Area */}
         <div className="flex-1 flex items-center justify-center p-6 md:p-12">
           <div className="w-full max-w-[600px] bg-white rounded-3xl border border-black/30 p-8 md:p-10 shadow-xl flex flex-col items-center gap-6">
-            
             <h2 className="text-lg md:text-xl font-bold text-black/70 tracking-wide text-center">
               SELECT ONE TO PROCEED
             </h2>
 
             <div className="w-full flex flex-col gap-4">
-              <button 
+              <button
                 type="button"
                 onClick={() => handleAction('purchase')}
                 className="w-full h-[56px] bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] hover:opacity-95 transition-opacity duration-200 text-white font-bold text-lg rounded-full shadow-[4px_4px_12px_rgba(0,0,0,0.20)] flex items-center justify-center"
@@ -75,7 +73,7 @@ export default function Enroll() {
                 Purchase Admission Form
               </button>
 
-              <button 
+              <button
                 type="button"
                 onClick={() => handleAction('login')}
                 className="w-full h-[56px] bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] hover:opacity-95 transition-opacity duration-200 text-white font-bold text-lg rounded-full shadow-[4px_4px_12px_rgba(0,0,0,0.20)] flex items-center justify-center"
@@ -83,16 +81,16 @@ export default function Enroll() {
                 Login to Dashboard
               </button>
             </div>
-
           </div>
         </div>
-
       </main>
 
       {showRoleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Choose your account type</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">
+              Choose your account type
+            </h3>
             <p className="text-sm text-slate-500 mb-6">
               Which dashboard do you want to access?
             </p>
