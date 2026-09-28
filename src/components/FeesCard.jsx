@@ -1,7 +1,7 @@
 // src/components/FeesCard.jsx
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getMyFees } from '../lib/api';
+import { useNavigate } from 'react-router-dom';
+import { getMyFees, getPaymentContext } from '../lib/api';
 
 function formatNumber(n) {
   return Number(n || 0).toLocaleString('en-NG');
@@ -45,10 +45,13 @@ function recomputeCountdown(fees) {
 }
 
 export default function FeesCard() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [fees, setFees] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [preparing, setPreparing] = useState(false);
+  const [prepareError, setPrepareError] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -64,6 +67,7 @@ export default function FeesCard() {
     })();
   }, []);
 
+  // Live countdown tick
   useEffect(() => {
     if (!fees || fees.status === 'expired') return;
     const intervalMs = fees.daysRemaining < 1 ? 30_000 : 60_000;
@@ -72,6 +76,31 @@ export default function FeesCard() {
     }, intervalMs);
     return () => clearInterval(timer);
   }, [fees?.expiresAt, fees?.status]); // eslint-disable-line
+
+  // ─── Build payment context, then navigate to /payment ───
+  const handlePay = async () => {
+    setPreparing(true);
+    setPrepareError('');
+    try {
+      const res = await getPaymentContext();
+      const ctx = res?.context;
+
+      if (!ctx) {
+        // No admission on file — send them through the enrollment flow
+        navigate('/enroll');
+        return;
+      }
+
+      // Navigate with full state so /payment's guards pass
+      navigate('/payment', { state: ctx });
+    } catch (e) {
+      console.error('Failed to build payment context:', e);
+      setPrepareError('Could not prepare payment. Redirecting…');
+      setTimeout(() => navigate('/enroll'), 800);
+    } finally {
+      setPreparing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -93,9 +122,10 @@ export default function FeesCard() {
     );
   }
 
+  // ─── No payment yet ───
   if (!fees) {
     return (
-      <div className="bg-white rounded-2xl border border-black/10 p-6">
+      <div className="bg-white rounded-2xl border border-black/10 p-6 flex flex-col">
         <div className="flex items-center gap-3 mb-4">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F9FF] text-[#1A73E8]">
             <i className="bx bx-wallet text-xl" aria-hidden="true" />
@@ -104,20 +134,40 @@ export default function FeesCard() {
             School Fees
           </h2>
         </div>
-        <p className="text-sm text-black/50 mb-4">
-          No payments on record yet.
+        <p className="text-sm text-black/50 mb-4 flex-1">
+          No payments on record yet. Make your first payment to activate
+          classes and materials.
         </p>
-        <Link
-          to="/enroll"
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] text-white font-bold px-5 py-2.5 text-sm shadow-md hover:opacity-95 transition"
+
+        {prepareError && (
+          <p className="text-xs text-red-600 mb-3">{prepareError}</p>
+        )}
+
+        <button
+          onClick={handlePay}
+          disabled={preparing}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] text-white font-bold px-5 py-3 text-sm shadow-md hover:opacity-95 transition disabled:opacity-60"
         >
-          <i className="bx bx-credit-card text-base" aria-hidden="true" />
-          Make a Payment
-        </Link>
+          {preparing ? (
+            <>
+              <i
+                className="bx bx-loader-alt animate-spin text-base"
+                aria-hidden="true"
+              />
+              Preparing…
+            </>
+          ) : (
+            <>
+              <i className="bx bx-credit-card text-base" aria-hidden="true" />
+              Make a Payment
+            </>
+          )}
+        </button>
       </div>
     );
   }
 
+  // ─── Has payment — show status ───
   const styles =
     {
       active: {
@@ -151,7 +201,8 @@ export default function FeesCard() {
     });
 
   return (
-    <div className="bg-white rounded-2xl border border-black/10 p-6">
+    <div className="bg-white rounded-2xl border border-black/10 p-6 flex flex-col">
+      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5F9FF] text-[#1A73E8]">
@@ -169,6 +220,7 @@ export default function FeesCard() {
         </span>
       </div>
 
+      {/* Amount + plan */}
       <div className="rounded-xl bg-gradient-to-r from-[#F5F9FF] to-[#FFF5FA] border border-[#1A73E8]/15 px-4 py-4 mb-5">
         <div className="flex items-end justify-between gap-3 mb-2">
           <div>
@@ -189,6 +241,7 @@ export default function FeesCard() {
         </p>
       </div>
 
+      {/* Countdown */}
       <div className="mb-5">
         <div className="flex items-end justify-between mb-2">
           <span className="text-sm text-black/50 font-ebrima">
@@ -214,6 +267,7 @@ export default function FeesCard() {
         </div>
       </div>
 
+      {/* Days used / remaining */}
       <div className="grid grid-cols-2 gap-3 pt-4 border-t border-black/5">
         <div className="text-center">
           <p className="text-xs text-black/40 font-ebrima mb-0.5">Days Used</p>
@@ -231,10 +285,13 @@ export default function FeesCard() {
         </div>
       </div>
 
+      {/* Warnings */}
       {fees.status === 'expiring-soon' && (
         <div className="mt-4 rounded-xl bg-yellow-50 border border-yellow-200 p-3 text-xs text-yellow-800 flex items-start gap-2">
           <i className="bx bx-error text-base shrink-0 mt-0.5" aria-hidden="true" />
-          <span>Your fees expire in {countdownLabel(fees)}. Please renew soon.</span>
+          <span>
+            Your fees expire in {countdownLabel(fees)}. Please renew soon.
+          </span>
         </div>
       )}
 
@@ -248,6 +305,7 @@ export default function FeesCard() {
         </div>
       )}
 
+      {/* Total paid */}
       {data?.totalPaid > 0 && (
         <div className="mt-4 pt-4 border-t border-black/5 flex justify-between text-xs">
           <span className="text-black/40 font-ebrima">Total paid overall</span>
@@ -257,15 +315,46 @@ export default function FeesCard() {
         </div>
       )}
 
-      {(fees.status === 'expiring-soon' || fees.status === 'expired') && (
-        <Link
-          to="/payment"
-          className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] text-white font-bold px-5 py-3 text-sm shadow-md hover:opacity-95 transition"
-        >
-          <i className="bx bx-refresh text-base" aria-hidden="true" />
-          Renew Fees
-        </Link>
+      {prepareError && (
+        <p className="mt-3 text-xs text-red-600">{prepareError}</p>
       )}
+
+      {/* Renew / Pay button — always visible */}
+      <button
+        onClick={handlePay}
+        disabled={preparing}
+        className={`mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full font-bold px-5 py-3 text-sm shadow-md transition disabled:opacity-60 ${
+          fees.status === 'expired'
+            ? 'bg-red-600 text-white hover:bg-red-700'
+            : fees.status === 'expiring-soon'
+            ? 'bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] text-white hover:opacity-95'
+            : 'border border-[#1A73E8] text-[#1A73E8] hover:bg-[#F5F9FF]'
+        }`}
+      >
+        {preparing ? (
+          <>
+            <i
+              className="bx bx-loader-alt animate-spin text-base"
+              aria-hidden="true"
+            />
+            Preparing…
+          </>
+        ) : (
+          <>
+            <i
+              className={`bx ${
+                fees.status === 'active' ? 'bx-refresh' : 'bx-credit-card'
+              } text-base`}
+              aria-hidden="true"
+            />
+            {fees.status === 'expired'
+              ? 'Renew Fees'
+              : fees.status === 'expiring-soon'
+              ? 'Renew Now'
+              : 'Pay / Renew'}
+          </>
+        )}
+      </button>
     </div>
   );
 }

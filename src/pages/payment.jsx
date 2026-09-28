@@ -10,7 +10,15 @@ import { initializePayment, isLoggedIn, getSession } from '../lib/api';
 export default function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { course, trackName, formData, applicationId } = location.state || {};
+  const {
+    course,
+    trackName,
+    formData,
+    applicationId,
+    email: contextEmail,
+  } = location.state || {};
+
+  const session = getSession('student') || {};
 
   const [checking, setChecking] = useState(true);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
@@ -74,15 +82,24 @@ export default function Payment() {
     setPaymentError('');
 
     try {
+      const emailToUse =
+        formData?.guardianEmail ||
+        formData?.email ||
+        contextEmail ||
+        session?.email ||
+        session?.user?.email ||
+        '';
+
       const result = await initializePayment({
         amount: amountToPay,
-        email: formData?.guardianEmail || '',
+        email: emailToUse,
         course,
         trackName,
         plan: selectedPlan,
         studentName: formData?.studentName || '',
         applicationId: applicationId || null,
-        callbackUrl: `${window.location.origin}/login?registered=true`,
+        // ← CHANGED: dedicated callback route (was /login?registered=true)
+        callbackUrl: `${window.location.origin}/payment/callback`,
       });
 
       if (!result?.authorization_url) {
@@ -160,43 +177,19 @@ export default function Payment() {
               <div className="h-px bg-black/10 mb-5" />
 
               <div className="space-y-2.5">
-                <SummaryRow
-                  icon="bx-map-pin"
-                  label="Campus"
-                  value={course}
-                />
-                <SummaryRow
-                  icon="bx-calendar-check"
-                  label="Plan"
-                  value={trackName}
-                />
+                <SummaryRow icon="bx-map-pin" label="Campus" value={course} />
+                <SummaryRow icon="bx-calendar-check" label="Plan" value={trackName} />
                 {pricing?.description && (
-                  <SummaryRow
-                    icon="bx-time"
-                    label="Schedule"
-                    value={pricing.description}
-                  />
+                  <SummaryRow icon="bx-time" label="Schedule" value={pricing.description} />
                 )}
                 {formData?.studentName && (
-                  <SummaryRow
-                    icon="bx-user"
-                    label="Student"
-                    value={formData.studentName}
-                  />
+                  <SummaryRow icon="bx-user" label="Student" value={formData.studentName} />
                 )}
                 {formData?.regularClass && (
-                  <SummaryRow
-                    icon="bx-group"
-                    label="Class"
-                    value={formData.regularClass}
-                  />
+                  <SummaryRow icon="bx-group" label="Class" value={formData.regularClass} />
                 )}
                 {formData?.instrument && (
-                  <SummaryRow
-                    icon="bx-music"
-                    label="Instrument"
-                    value={formData.instrument}
-                  />
+                  <SummaryRow icon="bx-music" label="Instrument" value={formData.instrument} />
                 )}
               </div>
             </section>
@@ -258,13 +251,10 @@ export default function Payment() {
                   <div className="text-2xl font-bold text-[#1A73E8] font-ebrima">
                     ₦{amountToPay.toLocaleString()}
                   </div>
-                  <div className="text-sm text-black/50 font-ebrima mt-1">
-                    Fee
-                  </div>
+                  <div className="text-sm text-black/50 font-ebrima mt-1">Fee</div>
                 </div>
               )}
 
-              {/* Total */}
               <div className="rounded-2xl bg-gradient-to-r from-[#F5F9FF] to-[#FFF5FA] border border-[#1A73E8]/15 p-5 flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-wider font-bold text-black/40 font-ebrima mb-1">
@@ -313,24 +303,19 @@ export default function Payment() {
                   aria-hidden="true"
                 />
                 <p className="text-xs text-black/60 font-ebrima leading-relaxed">
-                  All payments are processed securely by Paystack. Clan of
-                  David Academy does not store your card details.
+                  All payments are processed securely by Paystack. Clan of David
+                  Academy does not store your card details.
                 </p>
               </div>
             </section>
 
-            {/* ─── Error ─── */}
             {paymentError && (
               <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 flex items-start gap-2">
-                <i
-                  className="bx bx-error-circle text-lg shrink-0"
-                  aria-hidden="true"
-                />
+                <i className="bx bx-error-circle text-lg shrink-0" aria-hidden="true" />
                 <span>{paymentError}</span>
               </div>
             )}
 
-            {/* ─── Pay Button ─── */}
             <button
               type="submit"
               disabled={amountToPay <= 0 || paymentProcessing}
@@ -342,10 +327,7 @@ export default function Payment() {
             >
               {paymentProcessing ? (
                 <>
-                  <i
-                    className="bx bx-loader-alt animate-spin text-lg"
-                    aria-hidden="true"
-                  />
+                  <i className="bx bx-loader-alt animate-spin text-lg" aria-hidden="true" />
                   Redirecting to Paystack…
                 </>
               ) : (

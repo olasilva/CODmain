@@ -17,6 +17,7 @@ import CourseSelection from './pages/admission/CourseSelection';
 import CompleteApplication from './pages/admission/CompleteApplication';
 import ApplicationSubmitted from './pages/admission/ApplicationSubmitted';
 import Payment from './pages/payment';
+import PaymentCallback from './pages/PaymentCallback';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import News from './pages/News';
@@ -26,6 +27,7 @@ import Welcome from './pages/Welcome';
 import Placeholder from './pages/Placeholder';
 
 // ─── Student dashboard ───
+import StudentLayout from './pages/student/StudentLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentCourses from './pages/student/StudentCourses';
 import StudentClasses from './pages/student/StudentClasses';
@@ -34,9 +36,11 @@ import StudentResults from './pages/student/StudentResults';
 import StudentMessages from './pages/student/StudentMessages';
 import StudentNotifications from './pages/student/StudentNotifications';
 import StudentSettings from './pages/student/StudentSettings';
-import StudentAttendance from './pages/student/StudentAttendance'; // ← NEW
+import StudentAttendance from './pages/student/StudentAttendance';
+import StudentLearnMore from './pages/student/StudentLearnMore';
 
 // ─── Staff dashboard ───
+import StaffLayout from './pages/staff/StaffLayout';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import StaffCourses from './pages/staff/StaffCourses';
 import StaffStudents from './pages/staff/StaffStudents';
@@ -128,6 +132,7 @@ export default function App() {
             element={<CompleteApplication />}
           />
           <Route path="/payment" element={<Payment />} />
+          <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route
             path="/admission/application-submitted"
             element={<ApplicationSubmitted />}
@@ -138,45 +143,43 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
 
           {/* ═══════════════ Student Dashboard ═══════════════ */}
-          <Route path="/student" element={<StudentDashboard />} />
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/student/courses" element={<StudentCourses />} />
-          <Route path="/student/classes" element={<StudentClasses />} />
-          <Route path="/student/assignments" element={<StudentAssignments />} />
+          <Route path="/student" element={<StudentLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="courses" element={<StudentCourses />} />
+            <Route path="classes" element={<StudentClasses />} />
+            <Route path="assignments" element={<StudentAssignments />} />
+            <Route path="results" element={<StudentResults />} />
+            <Route path="messages" element={<StudentMessages />} />
+            <Route path="notifications" element={<StudentNotifications />} />
+            <Route path="settings" element={<StudentSettings />} />
+            <Route path="attendance" element={<StudentAttendance />} />
+            <Route path="learn-more" element={<StudentLearnMore />} />
+          </Route>
+
+          {/* Legacy alias */}
           <Route
             path="/dashboard/assignments"
-            element={<StudentAssignments />}
+            element={<Navigate to="/student/assignments" replace />}
           />
-          <Route path="/student/results" element={<StudentResults />} />
-          <Route path="/student/messages" element={<StudentMessages />} />
-          <Route
-            path="/student/notifications"
-            element={<StudentNotifications />}
-          />
-          <Route path="/student/settings" element={<StudentSettings />} />
-          <Route path="/student/attendance" element={<StudentAttendance />} /> {/* ← NEW */}
 
-          {/* ═══════════════ Staff Dashboard ═══════════════ */}
-          <Route path="/staff" element={<StaffDashboard />} />
-          <Route path="/staff/dashboard" element={<StaffDashboard />} />
-          <Route path="/staff/courses" element={<StaffCourses />} />
-          <Route path="/staff/students" element={<StaffStudents />} />
-          <Route
-            path="/staff/students/:studentId"
-            element={<StaffStudents />}
-          />
-          <Route path="/staff/grading" element={<StaffGrading />} />
-          <Route path="/staff/assignments" element={<StaffAssignments />} />
-          <Route path="/staff/sessions" element={<StaffSessions />} />
-          <Route path="/staff/attendance" element={<StaffAttendance />} />
-          <Route path="/staff/messages" element={<StaffMessages />} />
+          {/* ═══════════════ Staff Dashboard (wrapped in layout) ═══════════════ */}
+          <Route path="/staff" element={<StaffLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<StaffDashboard />} />
+            <Route path="courses" element={<StaffCourses />} />
+            <Route path="students" element={<StaffStudents />} />
+            <Route path="students/:studentId" element={<StaffStudents />} />
+            <Route path="grading" element={<StaffGrading />} />
+            <Route path="assignments" element={<StaffAssignments />} />
+            <Route path="sessions" element={<StaffSessions />} />
+            <Route path="attendance" element={<StaffAttendance />} />
+            <Route path="messages" element={<StaffMessages />} />
+          </Route>
 
           {/* ═══════════════ Admin ═══════════════ */}
-
-          {/* Public admin login */}
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* 403 page */}
           <Route
             path="/admin/forbidden"
             element={
@@ -191,7 +194,6 @@ export default function App() {
             }
           />
 
-          {/* Guarded admin panel */}
           <Route
             path="/admin"
             element={
@@ -203,7 +205,6 @@ export default function App() {
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
 
-            {/* Students */}
             <Route path="students" element={<AdminStudents />} />
             <Route
               path="students/:studentId"
@@ -213,35 +214,26 @@ export default function App() {
               path="students/:studentId/results"
               element={<AdminStudentResults />}
             />
-
-            {/* Legacy singular aliases */}
             <Route path="student/profile" element={<AdminStudentProfile />} />
             <Route path="student/results" element={<AdminStudentResults />} />
 
-            {/* Staff */}
             <Route path="staff" element={<AdminStaff />} />
 
-            {/* Courses / Programmes */}
             <Route path="courses" element={<AdminCourses />} />
             <Route path="programmes" element={<AdminCourses />} />
 
-            {/* Payments / Reports / Settings */}
             <Route path="payments" element={<AdminPayments />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="settings" element={<AdminSettings />} />
 
-            {/* Blog & News */}
             <Route path="blog" element={<AdminBlog />} />
             <Route path="news" element={<AdminBlog />} />
 
-            {/* Messages inbox */}
             <Route path="messages" element={<AdminMessages />} />
 
-            {/* 404 fallback within /admin */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 
-          {/* Global 404 fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

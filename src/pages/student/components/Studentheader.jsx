@@ -1,115 +1,106 @@
-// src/pages/student/components/StudentHeader.jsx
-import { useEffect, useState } from 'react';
+// src/pages/student/components/Studentheader.jsx
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../../../components/Avatar';
 import { getSession, logoutUser } from '../../../lib/api';
 
-export default function StudentHeader() {
+export default function StudentHeader({ onMenuClick }) {
   const navigate = useNavigate();
-  const [session, setSessionState] = useState(() => getSession('student'));
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Re-read session whenever:
-  //  - localStorage changes in another tab (storage event)
-  //  - our own upload dispatches 'session-updated'
-  //  - the tab regains focus
-  //  - every 5s as a fallback
   useEffect(() => {
-    const refresh = () => setSessionState(getSession('student'));
-
-    window.addEventListener('storage', refresh);
-    window.addEventListener('session-updated', refresh);
-    window.addEventListener('focus', refresh);
-
-    const interval = setInterval(refresh, 5000);
-
-    return () => {
-      window.removeEventListener('storage', refresh);
-      window.removeEventListener('session-updated', refresh);
-      window.removeEventListener('focus', refresh);
-      clearInterval(interval);
-    };
+    setUser(getSession('student'));
   }, []);
 
   const handleLogout = () => {
     logoutUser('student');
-    navigate('/login', { replace: true });
+    navigate('/login');
   };
 
   return (
-    <div className="h-[98px] bg-[#F3F4F6] border-b border-black/30 flex items-center justify-between px-8 sticky top-0 z-30">
-      {/* Left — brand */}
-      <Link to="/student/dashboard" className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-[#1A73E8] rounded-xl flex items-center justify-center text-white font-bold text-xl">
-          C
-        </div>
-        <span className="text-3xl font-bold text-black font-ebrima leading-[22px]">
-          Clan of David
-        </span>
-      </Link>
-
-      {/* Right — actions + profile */}
-      <div className="flex items-center gap-4">
-        {/* Notifications bell */}
-        <Link
-          to="/student/notifications"
-          title="Notifications"
-          className="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center text-black/60 transition"
-        >
-          <svg
-            className="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-        </Link>
-
-        {/* Messages */}
-        <Link
-          to="/student/messages"
-          title="Messages"
-          className="w-10 h-10 rounded-full hover:bg-black/5 flex items-center justify-center text-black/60 transition"
-        >
-          <svg
-            className="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        </Link>
-
-        {/* Avatar + name */}
-        <div className="flex items-center gap-3 pl-4 border-l border-black/10">
-          <Avatar
-            src={session?.avatar_url}
-            name={session?.fullName}
-            size={48}
-          />
-          <div className="hidden md:block leading-tight">
-            <div className="text-sm font-bold text-black">
-              {session?.fullName?.split(' ')[0] || 'Student'}
-            </div>
-            <div className="text-xs text-black/50">
-              {session?.email || ''}
-            </div>
-          </div>
-        </div>
-
-        {/* Logout */}
+    <header className="sticky top-0 z-30 bg-white border-b border-black/5">
+      <div className="flex items-center gap-3 px-4 sm:px-6 py-3">
+        {/* Hamburger — mobile only */}
         <button
-          onClick={handleLogout}
-          title="Log out"
-          className="ml-2 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-full transition"
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open menu"
+          className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-black/5 text-black/70 transition shrink-0"
         >
-          Log out
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
+
+        {/* Page title / breadcrumb (hidden on tiny screens) */}
+        <div className="hidden sm:block min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wider text-black/40">
+            Student
+          </p>
+          <p className="text-sm font-bold text-black font-ebrima truncate">
+            Dashboard
+          </p>
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Profile menu */}
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Account menu"
+            className="flex items-center gap-2 rounded-full hover:bg-black/5 p-1 transition"
+          >
+            <Avatar
+              src={user?.avatar_url}
+              name={user?.full_name || user?.fullName}
+              size={36}
+            />
+          </button>
+
+          {menuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setMenuOpen(false)}
+              />
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-black/10 shadow-lg overflow-hidden z-20">
+                <div className="px-4 py-3 border-b border-black/5">
+                  <p className="text-sm font-bold text-black truncate">
+                    {user?.full_name || user?.fullName || 'Student'}
+                  </p>
+                  <p className="text-xs text-black/50 truncate">
+                    {user?.email || ''}
+                  </p>
+                </div>
+                <Link
+                  to="/student/settings"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full text-left px-4 py-2.5 text-sm text-black/70 hover:bg-black/5 transition"
+                >
+                  Settings
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition border-t border-black/5"
+                >
+                  Logout
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </header>
   );
 }

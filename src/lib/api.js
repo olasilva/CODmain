@@ -357,7 +357,7 @@ export async function initializePayment(paymentData) {
 }
 
 export async function verifyPayment(reference) {
-  return request(`/payments/verify?reference=${reference}`);
+  return request(`/payments/verify?reference=${encodeURIComponent(reference)}`);
 }
 
 export async function getPaymentHistory() {
@@ -876,15 +876,38 @@ export async function getAttendanceSubmissions(date) {
   const qs = date ? `?date=${date}` : '';
   return request(`/staff/attendance/submissions${qs}`);
 }
-// ============ EXPORT DEFAULTS ============
 
+// ============ STUDENT — TEACHERS / DIRECTORY / PAYMENT CONTEXT ============
 
 export async function getMyTeachers() {
   return request('/student/teachers');
 }
 
+export async function getStaffDirectory(query = '') {
+  const qs = query ? `?q=${encodeURIComponent(query)}` : '';
+  return request(`/student/staff-directory${qs}`);
+}
+
 export async function getConversationWithTeacher(teacherUserId) {
   return request(`/student/messages/${teacherUserId}`);
+}
+
+export async function getPaymentContext() {
+  return request('/student/payment-context');
+}
+
+export async function approveStaffAttendance(attendanceId, approval) {
+  return request(`/staff/attendance/${attendanceId}/approve`, {
+    method: 'POST',
+    body: JSON.stringify({ approval }),
+  });
+}
+
+export async function bulkApproveStaffAttendance(ids, approval) {
+  return request('/staff/attendance/bulk-approve', {
+    method: 'POST',
+    body: JSON.stringify({ ids, approval }),
+  });
 }
 
 export async function sendMessageToTeacher(teacherUserId, body) {
@@ -893,6 +916,33 @@ export async function sendMessageToTeacher(teacherUserId, body) {
     body: JSON.stringify({ teacherUserId, body }),
   });
 }
+
+// ============ CLASS SESSIONS ============
+
+export async function getStaffSessions() {
+  return request('/staff/sessions');
+}
+
+export async function startStaffSession(data) {
+  return request('/staff/sessions/start', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function endStaffSession(sessionId, data = {}) {
+  return request(`/staff/sessions/${sessionId}/end`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getStudentSessions() {
+  return request('/student/sessions');
+}
+
+// ============ EXPORT DEFAULTS ============
+
 export default {
   // Auth
   registerUser,
@@ -1030,15 +1080,23 @@ export default {
   markStaffAttendance,
   getAttendanceHistory,
   getAttendanceSubmissions,
+  approveStaffAttendance,
+  bulkApproveStaffAttendance,
 
-  // Online Sessions (Staff)
+  // Online Sessions (Staff) — legacy
   createOnlineSession,
   getStaffOnlineSessions,
   updateOnlineSession,
   deleteOnlineSession,
 
-  // Online Sessions (Student)
+  // Online Sessions (Student) — legacy
   getStudentOnlineSessions,
+
+  // Class sessions
+  getStaffSessions,
+  startStaffSession,
+  endStaffSession,
+  getStudentSessions,
 
   // Notifications
   getNotifications,
@@ -1063,6 +1121,7 @@ export default {
 
   // Student — Attendance
   getMyAttendance,
+  submitMyAttendance,
 
   // Settings
   getSettings,
@@ -1078,8 +1137,10 @@ export default {
   markMessageRead,
   getUnreadMessageCount,
 
-   // Student — Fees
-  getMyFees,
-  getMyAttendance,
-  submitMyAttendance, 
+  // Student — Teachers, Directory & Payment Context
+  getMyTeachers,
+  getStaffDirectory,
+  getConversationWithTeacher,
+  getPaymentContext,
+  sendMessageToTeacher,
 };
