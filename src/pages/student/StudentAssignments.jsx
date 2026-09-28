@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StudentSidebar from './components/StudentSidebar';
-import StudentHeader from './components/Studentheader';
+import StudentHeader from './components/StudentHeader';
 import { getAssignments, getStudentProfile } from '../../lib/api';
 import { getSession, isLoggedIn } from '../../lib/api';
 

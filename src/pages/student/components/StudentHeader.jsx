@@ -1,4 +1,4 @@
-// src/pages/student/components/Studentheader.jsx
+// src/pages/student/components/StudentHeader.jsx
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from '../../../components/Avatar';
