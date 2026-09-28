@@ -1,0 +1,118 @@
+/* src/styles/animations.css
+   Global animation utilities. Import once in main.jsx or App.jsx. */
+
+/* ═══════════════════════════════════════════
+   LIQUID DROPLET POP — elements emerge from a
+   point with a subtle overshoot, like a water
+   droplet forming and settling.
+   ═══════════════════════════════════════════ */
+
+@keyframes droplet-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) translateY(8px);
+    filter: blur(4px);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-2px);
+    filter: blur(0);
+  }
+  70% {
+    transform: scale(0.97) translateY(1px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes droplet-slide-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px) scale(0.9);
+    filter: blur(4px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(4px) scale(1.03);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes droplet-slide-right {
+  0% {
+    opacity: 0;
+    transform: translateX(24px) scale(0.9);
+    filter: blur(4px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(-4px) scale(1.03);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes droplet-drop-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.6);
+    filter: blur(4px);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(4px) scale(1.06);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Base utility — element starts invisible, animates in */
+.droplet {
+  opacity: 0;
+  animation: droplet-pop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.droplet-left {
+  opacity: 0;
+  animation: droplet-slide-left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.droplet-right {
+  opacity: 0;
+  animation: droplet-slide-right 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.droplet-drop {
+  opacity: 0;
+  animation: droplet-drop-down 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .droplet,
+  .droplet-left,
+  .droplet-right,
+  .droplet-drop {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}

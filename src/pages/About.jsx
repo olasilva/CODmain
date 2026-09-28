@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Logo from "../components/Logo";
+import CountUp from "../components/CountUp";
 
-// Image from assets — benglo.jpg (the founder's photo)
 const images = import.meta.glob("../assets/*.{png,jpg,jpeg,webp,svg}", {
   eager: true,
   import: "default",
@@ -15,11 +15,12 @@ const bengloImage =
   images["../assets/benglo.jpeg"] ||
   null;
 
+// ← Numbers are now numbers with suffix + duration
 const stats = [
-  { label: "Years Running", value: "10+" },
-  { label: "Students Enrolled", value: "500+" },
-  { label: "Instruments Taught", value: "11" },
-  { label: "Instructors", value: "20+" },
+  { label: "Years Running",       end: 10,  suffix: "+", duration: 2400 },
+  { label: "Students Enrolled",   end: 500, suffix: "+", duration: 3400 },
+  { label: "Instruments Taught",  end: 11,  suffix: "",  duration: 2400 },
+  { label: "Instructors",         end: 20,  suffix: "+", duration: 2800 },
 ];
 
 const values = [
@@ -103,7 +104,12 @@ export default function About() {
               className="opacity-0 animate-fadeUp rounded-2xl bg-white border border-slate-200 shadow-sm px-6 py-8 text-center transition hover:shadow-md hover:-translate-y-0.5"
             >
               <p className="text-cod-blue text-3xl md:text-4xl font-bold mb-1">
-                {s.value}
+                <CountUp
+                  end={s.end}
+                  suffix={s.suffix}
+                  duration={s.duration}
+                  delay={i * 120 + 200}
+                />
               </p>
               <p className="text-slate-500 text-xs md:text-sm font-medium uppercase tracking-wide">
                 {s.label}
@@ -166,7 +172,6 @@ export default function About() {
             </Link>
           </div>
 
-          {/* Hero image */}
           <div
             className="relative rounded-3xl overflow-hidden h-72 md:h-96 shadow-xl opacity-0 animate-fadeUp bg-gradient-to-br from-cod-blue via-cyan-500 to-emerald-400"
             style={{ animationDelay: "150ms" }}
@@ -234,7 +239,6 @@ export default function About() {
           style={{ animationDelay: "150ms" }}
         >
           <div className="grid md:grid-cols-3 gap-0">
-            {/* Founder photo */}
             <div className="md:col-span-1 bg-gradient-to-br from-cod-blue to-cod-pink flex items-center justify-center p-8 md:p-10">
               <div className="flex flex-col items-center text-center">
                 {founder.photo ? (
@@ -261,7 +265,6 @@ export default function About() {
               </div>
             </div>
 
-            {/* Founder bio */}
             <div className="md:col-span-2 p-8 md:p-12">
               <div className="flex items-center gap-3 mb-5">
                 <i

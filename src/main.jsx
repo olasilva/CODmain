@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from './App';
 import './index.css';
+import './styles/animations.css';
 
 // Boxicons — icon font used throughout the app
 import 'boxicons/css/boxicons.min.css';

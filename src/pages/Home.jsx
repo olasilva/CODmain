@@ -15,7 +15,7 @@ export default function Home() {
     <>
       <Navbar />
 
-      {/* Hero — has its own on-load animation, no wrapper needed */}
+      {/* Hero has its own on-load animation, no wrapper needed */}
       <Hero />
 
       {/* Everything below scroll-reveals as you scroll down */}
@@ -27,7 +27,8 @@ export default function Home() {
         <AboutSection />
       </Reveal>
 
-      <Reveal variant="zoom-in" threshold={0.1}>
+      {/* StatsBar gets zoom-in — its numbers will count up as it appears */}
+      <Reveal variant="zoom-in" threshold={0.15}>
         <StatsBar />
       </Reveal>
 

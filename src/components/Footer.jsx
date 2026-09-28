@@ -1,6 +1,7 @@
 // src/components/Footer.jsx
-import { Link } from 'react-router-dom'
-import logo from '../assets/logo.jpg'
+import { Link } from 'react-router-dom';
+import logo from '../assets/logo.jpg';
+import Stagger from './Stagger';
 
 const columns = [
   {
@@ -47,20 +48,21 @@ const columns = [
       { label: 'DISCLAIMER', to: '/terms' },
     ],
   },
-]
+];
 
 export default function Footer() {
   return (
     <footer className="w-full bg-cod-blue-deep text-white pt-14 pb-8">
       <div className="max-w-7xl mx-auto px-5 md:px-8">
         <div className="grid md:grid-cols-[240px_1fr] gap-12 mb-12">
-          <div className="flex md:flex-col items-start gap-4">
+          {/* Brand block — slides in from left */}
+          <div className="droplet-left flex md:flex-col items-start gap-4">
             <img
               src={logo}
               alt="Clan of David"
               className="w-14 h-14 rounded-xl object-cover"
               onError={(e) => {
-                e.currentTarget.style.display = 'none'
+                e.currentTarget.style.display = 'none';
               }}
             />
             <div>
@@ -76,45 +78,64 @@ export default function Footer() {
             </div>
           </div>
 
+          {/* Link columns — each column staggers its own links */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {columns.map((col) => (
-              <div key={col.title}>
+            {columns.map((col, colIdx) => (
+              <div
+                key={col.title}
+                className="droplet"
+                style={{ animationDelay: `${colIdx * 80}ms` }}
+              >
                 <div className="inline-block bg-cod-blue rounded-lg px-3 py-1.5 mb-4">
                   <span className="text-xs font-bold tracking-wide">
                     {col.title}
                   </span>
                 </div>
+
                 <ul className="space-y-2.5">
-                  {col.links.map((l) => (
-                    <li key={l.label}>
-                      {l.href ? (
-                        <a
-                          href={l.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-white/85 hover:text-cod-pink transition-colors"
-                        >
-                          {l.label}
-                        </a>
-                      ) : (
-                        <Link
-                          to={l.to}
-                          className="text-sm text-white/85 hover:text-cod-pink transition-colors"
-                        >
-                          {l.label}
-                        </Link>
-                      )}
-                    </li>
-                  ))}
+                  <Stagger
+                    as="div"
+                    base={colIdx * 80 + 120}
+                    step={60}
+                    variant="droplet-drop"
+                  >
+                    {col.links.map((l) => (
+                      <li key={l.label}>
+                        {l.href ? (
+                          <a
+                            href={l.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-white/85 hover:text-cod-pink transition-colors inline-block"
+                          >
+                            {l.label}
+                          </a>
+                        ) : (
+                          <Link
+                            to={l.to}
+                            className="text-sm text-white/85 hover:text-cod-pink transition-colors inline-block"
+                          >
+                            {l.label}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </Stagger>
                 </ul>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Contact strip */}
-        <div className="border-t border-white/20 pt-6 flex flex-wrap items-center justify-center md:justify-between gap-4 text-sm text-white/70">
-          <span>© {new Date().getFullYear()} Clan of David Academy. All rights reserved.</span>
+        {/* Contact strip — fades up last */}
+        <div
+          className="droplet border-t border-white/20 pt-6 flex flex-wrap items-center justify-center md:justify-between gap-4 text-sm text-white/70"
+          style={{ animationDelay: '480ms' }}
+        >
+          <span>
+            © {new Date().getFullYear()} Clan of David Academy. All rights
+            reserved.
+          </span>
           <a
             href="tel:+2348128849345"
             className="hover:text-cod-pink transition-colors"
@@ -124,5 +145,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
