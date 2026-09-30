@@ -1,6 +1,5 @@
 // src/components/AboutSection.jsx
 import { useMemo } from 'react';
-import Stagger from './Stagger';
 
 const allImages = import.meta.glob('../assets/*.{png,jpg,jpeg,webp,svg}', {
   eager: true,
@@ -18,6 +17,13 @@ const academyPhotos = Object.entries(allImages)
   .map(([, src]) => src);
 
 const FALLBACK = allImages['../assets/logo.jpg'] || null;
+
+// Paragraph text — kept in an array so we can stagger the reveal
+const PARAGRAPHS = [
+  'Clan of David is a distinguished academy dedicated to discovering, developing, and nurturing young talents.',
+  'We are widely recognized for our outstanding Early Years programs, which combine musical skills training, art and creativity, a vibrant educational foundation, and strong character formation rooted in godly values.',
+  'As an institution that blends academic excellence with skill development in one holistic environment, we are committed to total inclusiveness in skills development at the primary education level, making learning fun, practical, and inspiring.',
+];
 
 export default function AboutSection() {
   const photo = useMemo(() => {
@@ -53,26 +59,19 @@ export default function AboutSection() {
             </div>
           </div>
 
-          {/* ═══════ Text — paragraphs cascade in ═══════ */}
-          <div className="text-white space-y-4 text-base md:text-lg leading-relaxed">
-            <Stagger base={200} step={140} variant="droplet-drop">
-              <p>
-                Clan of David is a distinguished academy dedicated to
-                discovering, developing, and nurturing young talents.
+          {/* ═══════ Text — paragraphs fade in slowly, one after another ═══════ */}
+          <div className="text-white space-y-5 text-base md:text-lg leading-relaxed">
+            {PARAGRAPHS.map((text, i) => (
+              <p
+                key={i}
+                className="fade-up-slower"
+                style={{
+                  animationDelay: `${300 + i * 700}ms`,
+                }}
+              >
+                {text}
               </p>
-              <p>
-                We are widely recognized for our outstanding Early Years
-                programs, which combine musical skills training, art and
-                creativity, a vibrant educational foundation, and strong
-                character formation rooted in godly values.
-              </p>
-              <p>
-                As an institution that blends academic excellence with skill
-                development in one holistic environment, we are committed to
-                total inclusiveness in skills development at the primary
-                education level, making learning fun, practical, and inspiring.
-              </p>
-            </Stagger>
+            ))}
           </div>
         </div>
       </div>

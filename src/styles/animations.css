@@ -116,3 +116,55 @@
     filter: none !important;
   }
 }
+
+/* Blinking caret for typewriter effect */
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.animate-caret-blink {
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+/* ═══════════════════════════════════════════
+   SLOW PARAGRAPH REVEAL
+   Paragraphs fade up gently over ~1.6s.
+   Feels like each sentence is being written.
+   ═══════════════════════════════════════════ */
+
+@keyframes fade-up-slow {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.fade-up-slow {
+  opacity: 0;
+  animation: fade-up-slow 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter;
+}
+
+/* Even slower — good for long-form text */
+.fade-up-slower {
+  opacity: 0;
+  animation: fade-up-slow 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform, filter;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up-slow,
+  .fade-up-slower {
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
