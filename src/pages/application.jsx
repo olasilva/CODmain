@@ -1,11 +1,15 @@
 // src/pages/application.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { DocumentIcon } from '../components/BoxIcons';
 import { COUNTRIES } from '../data/countries';
 import { startAdmission, getSession, isLoggedIn } from '../lib/api';
+
+const API_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
+  'http://localhost:5000/api';
 
 // ─── Programme options ───
 const PROGRAMMES = [
@@ -85,7 +89,14 @@ export default function Application() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checking, setChecking] = useState(true);
 
-  // Require auth — bounce to create account if not signed in
+  // ─── Passport upload state ───
+  const fileInputRef = useRef(null);
+  const [passportUrl, setPassportUrl] = useState('');
+  const [passportPreview, setPassportPreview] = useState('');
+  const [uploadingPassport, setUploadingPassport] = useState(false);
+  const [passportError, setPassportError] = useState('');
+
+  // Require auth
   useEffect(() => {
     if (!isLoggedIn('student') || !getSession('student')) {
       navigate('/admission/create-account', { replace: true });
@@ -108,6 +119,83 @@ export default function Application() {
     };
   }
 
+  // ─── Passport upload handler ───
+  async function handlePassportChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setPassportError('');
+
+    // Validate type
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setPassportError('Please upload a JPG, PNG, or WEBP image.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Validate size — 5 MB max
+    if (file.size > 5 * 1024 * 1024) {
+      setPassportError('Photo must be under 5 MB.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Show local preview immediately
+    const localPreview = URL.createObjectURL(file);
+    setPassportPreview(localPreview);
+
+    setUploadingPassport(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+
+      const token = localStorage.getItem('cod-student-token');
+
+      const res = await fetch(`${API_URL}/upload/avatar`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: fd,
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(
+          data.error || data.details || `Upload failed (${res.status})`
+        );
+      }
+
+      const url = data.avatar_url || data.url;
+      if (!url) throw new Error('Upload did not return a URL.');
+
+      setPassportUrl(url);
+      setPassportPreview(url);
+    } catch (err) {
+      console.error('Passport upload error:', err);
+      setPassportError(err.message || 'Failed to upload photo.');
+      setPassportPreview('');
+      setPassportUrl('');
+    } finally {
+      setUploadingPassport(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  function removePassport() {
+    setPassportUrl('');
+    setPassportPreview('');
+    setPassportError('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
   const showsClass =
     form.programme === 'Regular Track' || form.programme === 'Mixed Track';
   const showsInstrument =
@@ -122,10 +210,12 @@ export default function Application() {
     form.guardianEmail &&
     form.guardianPhone &&
     form.homeAddress &&
+    passportUrl &&                              // ← passport required
     (!showsClass || form.regularClass) &&
     (!showsInstrument || form.instrument);
 
-  const canSubmit = requiredFilled && agreed && !isSubmitting;
+  const canSubmit =
+    requiredFilled && agreed && !isSubmitting && !uploadingPassport;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -153,6 +243,7 @@ export default function Application() {
           experience: form.experience,
           medicalNotes: form.medicalNotes,
           comments: form.comments,
+          passportUrl,                            // ← passport URL submitted
         },
         academicInfo: {
           trackName: form.programme,
@@ -165,14 +256,12 @@ export default function Application() {
 
       const application = await startAdmission(applicationData);
 
-      // ── Step 2 done → go to Step 3 (Campus + Plan selection) ──
       navigate('/admission/course-selection', {
         state: {
           applicationId:
             application?.admission?.id || application?.id || null,
-          formData: form,
+          formData: { ...form, passportUrl },
           trackName: form.programme,
-          // NOTE: `course` (campus) is chosen on the next page
         },
       });
     } catch (error) {
@@ -211,7 +300,6 @@ export default function Application() {
             <StepDot>4</StepDot>
           </div>
 
-          {/* Header */}
           <div className="mb-6">
             <h1 className="text-[30px] sm:text-4xl font-bold text-[#0F4082] font-ebrima leading-tight">
               Purchase Admission Form
@@ -238,6 +326,103 @@ export default function Application() {
               <div className="h-px bg-black/10 mb-5" />
 
               <div className="space-y-5">
+                {/* ═══ Passport Photo Upload ═══ */}
+                <div>
+                  <span className="block text-sm font-semibold text-black/70 mb-2 font-ebrima">
+                    Passport Photograph
+                    <span className="text-[#FF2E96]"> *</span>
+                  </span>
+
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    {/* Preview box */}
+                    <div className="relative w-28 h-28 rounded-2xl border-2 border-dashed border-black/15 overflow-hidden bg-[#F5F9FF] flex items-center justify-center shrink-0">
+                      {passportPreview ? (
+                        <img
+                          src={passportPreview}
+                          alt="Passport preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <i
+                          className="bx bx-user text-5xl text-black/20"
+                          aria-hidden="true"
+                        />
+                      )}
+
+                      {uploadingPassport && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <i
+                            className="bx bx-loader-alt animate-spin text-2xl text-white"
+                            aria-hidden="true"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Buttons + help */}
+                    <div className="flex-1 min-w-0">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handlePassportChange}
+                        className="hidden"
+                      />
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingPassport}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1A73E8] text-white font-bold text-sm hover:bg-blue-700 active:scale-[0.98] transition disabled:opacity-50"
+                        >
+                          <i
+                            className={`bx ${
+                              uploadingPassport ? 'bx-loader-alt animate-spin' : 'bx-upload'
+                            }`}
+                            aria-hidden="true"
+                          />
+                          {uploadingPassport
+                            ? 'Uploading…'
+                            : passportUrl
+                            ? 'Change photo'
+                            : 'Upload photo'}
+                        </button>
+
+                        {passportUrl && !uploadingPassport && (
+                          <button
+                            type="button"
+                            onClick={removePassport}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full border border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition"
+                          >
+                            <i className="bx bx-trash" aria-hidden="true" />
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-black/45 mt-2.5 font-ebrima leading-relaxed">
+                        Clear, recent photo of the student's face. JPG, PNG, or
+                        WEBP — max 5 MB.
+                      </p>
+
+                      {passportError && (
+                        <p
+                          className="text-xs text-red-600 mt-2 flex items-center gap-1.5"
+                          role="alert"
+                        >
+                          <i
+                            className="bx bx-error-circle text-base"
+                            aria-hidden="true"
+                          />
+                          {passportError}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Student Full Name */}
                 <Field label="Student Full Name" required>
                   <input
                     required
@@ -362,7 +547,6 @@ export default function Application() {
                 })}
               </div>
 
-              {/* Conditional: Regular Class */}
               {showsClass && (
                 <div className="mt-6 animate-fadeUp">
                   <Field label="Select Class" required>
@@ -389,7 +573,6 @@ export default function Application() {
                 </div>
               )}
 
-              {/* Conditional: Instrument */}
               {showsInstrument && (
                 <div className="mt-6 animate-fadeUp">
                   <Field label="Select Instrument" required>
