@@ -28,6 +28,20 @@ const tracks = [
     accent: 'bg-cod-blue/10 text-cod-blue',
   },
   {
+    title: 'Adult Education',
+    desc: 'Affordable music lessons for adults with a flexible plan, clear pricing, and a welcoming learning environment.',
+    to: '/programmes/adult-education',
+    icon: (
+      <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="9.5" cy="7" r="3.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M22 19v-1a4 4 0 0 0-3-3.87" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+    accent: 'bg-fuchsia-500/10 text-fuchsia-600',
+  },
+  {
     title: 'Mixed Track',
     desc: 'The best of both worlds; a balanced curriculum combining music mastery with academic excellence.',
     to: '/programmes/mixed-track',

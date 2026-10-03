@@ -5,25 +5,27 @@ import ProgrammeCTA from '../components/ProgrammeCTA'
 const legend = [
   { label: 'Foundation', dot: 'bg-cod-pink' },
   { label: 'Nursery', dot: 'bg-emerald-500' },
-  { label: 'Primary', dot: 'bg-cod-blue' },
+  { label: 'Basic', dot: 'bg-cod-blue' },
 ]
 
 const levels = [
-  {
-    title: 'Pre School',
-    tag: 'Foundation',
-    bar: 'bg-cod-pink',
-    tagClass: 'bg-cod-pink/10 text-cod-pink',
-    icon: 'bx-child',
-    desc: 'Early childhood education for ages 2–3, building foundational social and cognitive skills.',
-  },
   {
     title: 'Discovery',
     tag: 'Foundation',
     bar: 'bg-cod-pink',
     tagClass: 'bg-cod-pink/10 text-cod-pink',
     icon: 'bx-bulb',
-    desc: 'Creative exploration and learning readiness programme for ages 3–4.',
+    desc: 'Creative exploration and learning readiness programme for early learners.',
+    subjects: ['Numeracy', 'Literacy', 'Physical and Social Development (P S D)', 'Creative Development', 'Knowledge and Understanding of the World (K U W)', 'Rhymes'],
+  },
+  {
+    title: 'Pre Nursery',
+    tag: 'Foundation',
+    bar: 'bg-cod-pink',
+    tagClass: 'bg-cod-pink/10 text-cod-pink',
+    icon: 'bx-child',
+    desc: 'Foundational early childhood learning that builds confidence, routine, and curiosity.',
+    subjects: ['Numeracy', 'Literacy', 'Basic Science', 'Social Value', 'Health Habit', 'C R S', 'Creative Art', 'Rhymes'],
   },
   {
     title: 'Nursery 1',
@@ -32,6 +34,7 @@ const levels = [
     tagClass: 'bg-emerald-500/10 text-emerald-600',
     icon: 'bx-shapes',
     desc: 'Structured play-based learning introducing letters, numbers, and creativity.',
+    subjects: ['Numeracy', 'Literacy', 'Basic Science', 'Social Value', 'Health Habit', 'C R S', 'Creative Art', 'Music', 'Phonics', 'Handwriting', 'Rhymes'],
   },
   {
     title: 'Nursery 2',
@@ -40,48 +43,54 @@ const levels = [
     tagClass: 'bg-emerald-500/10 text-emerald-600',
     icon: 'bx-shapes',
     desc: 'Advanced nursery curriculum preparing children for primary education.',
+    subjects: ['Numeracy', 'Literacy', 'Basic Science', 'Social Value', 'Health Habit', 'C R S', 'Creative Art', 'Music', 'Phonics', 'Handwriting', 'Rhymes'],
   },
   {
-    title: 'Primary 1',
-    tag: 'Primary',
+    title: 'Basic 1',
+    tag: 'Basic',
     bar: 'bg-cod-blue',
     tagClass: 'bg-cod-blue/10 text-cod-blue',
     icon: 'bx-book',
-    desc: 'Core literacy, numeracy, science and social studies in year one.',
+    desc: 'Foundational lower basic learning with strong literacy, numeracy, and creativity.',
+    subjects: ['Mathematics', 'English Language', 'Basic Science', 'Social Value', 'C R S', 'Creative Art', 'Phonics', 'Music', 'French', 'Basic Technology', 'Information Technology', 'Social Studies', 'Civic Education', 'Handwriting'],
   },
   {
-    title: 'Primary 2',
-    tag: 'Primary',
+    title: 'Basic 2',
+    tag: 'Basic',
     bar: 'bg-cod-blue',
     tagClass: 'bg-cod-blue/10 text-cod-blue',
     icon: 'bx-book',
-    desc: 'Building on primary skills with expanded subject coverage.',
+    desc: 'Building on early core subjects with wider practical and creative exposure.',
+    subjects: ['Mathematics', 'English Language', 'Basic Science', 'Social Value', 'C R S', 'Cultural and Creative Art (C C A)', 'Phonics', 'Music', 'French', 'Basic Technology', 'Information Technology', 'Social Studies', 'Civic Education', 'Handwriting'],
   },
   {
-    title: 'Primary 3',
-    tag: 'Primary',
+    title: 'Basic 3',
+    tag: 'Basic',
     bar: 'bg-cod-blue',
     tagClass: 'bg-cod-blue/10 text-cod-blue',
     icon: 'bx-book-open',
-    desc: 'Intermediate primary with introduction to analytical thinking.',
+    desc: 'Intermediate study across analytical, creative, and foundational skills.',
+    subjects: ['Mathematics', 'Quantitative Reasoning', 'English Language', 'Verbal Reasoning', 'Basic Science', 'C R S', 'Cultural and Creative Art (C C A)', 'Physical and Health Education (P H E)', 'Music', 'Agricultural Studies', 'French', 'Basic Technology', 'Information Technology', 'Social Studies', 'Civic Education', 'History'],
   },
   {
-    title: 'Primary 4',
-    tag: 'Primary',
+    title: 'Basic 4',
+    tag: 'Basic',
     bar: 'bg-cod-blue',
     tagClass: 'bg-cod-blue/10 text-cod-blue',
     icon: 'bx-book-open',
-    desc: 'Deepening knowledge across all subjects with project-based learning.',
+    desc: 'Strengthening analytical thinking and broad academic content across key disciplines.',
+    subjects: ['Mathematics', 'Quantitative Reasoning', 'English Language', 'Verbal Reasoning', 'Basic Science', 'C R S', 'Cultural and Creative Art (C C A)', 'Physical and Health Education (P H E)', 'Music', 'Agricultural Studies', 'French', 'Basic Technology', 'Information Technology', 'Social Studies', 'Civic Education', 'History'],
   },
   {
-    title: 'Primary 5',
-    tag: 'Primary',
+    title: 'Basic 5',
+    tag: 'Basic',
     bar: 'bg-cod-blue',
     tagClass: 'bg-cod-blue/10 text-cod-blue',
     icon: 'bx-book-reader',
-    desc: 'Comprehensive upper primary programme with critical thinking focus.',
+    desc: 'Comprehensive upper basic programme with deeper reasoning and subject mastery.',
+    subjects: ['Mathematics', 'Quantitative Reasoning', 'English Language', 'Verbal Reasoning', 'Basic Science', 'C R S', 'Cultural and Creative Art (C C A)', 'Physical and Health Education (P H E)', 'Music', 'Agricultural Studies', 'French', 'Basic Technology', 'Information Technology', 'Social Studies', 'Civic Education', 'History'],
   },
-]
+];
 
 export default function RegularTrack() {
   return (
@@ -106,7 +115,7 @@ export default function RegularTrack() {
               Regular Track
             </h1>
             <p className="mt-2 text-white/85 text-sm md:text-base max-w-lg">
-              A nurturing academic curriculum from pre-school through primary,
+              A nurturing academic curriculum from Discovery through Basic 5,
               building confident and curious learners.
             </p>
           </div>
@@ -166,6 +175,19 @@ export default function RegularTrack() {
                   <p className="text-sm text-slate-600 leading-relaxed">
                     {lvl.desc}
                   </p>
+
+                  {lvl.subjects?.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {lvl.subjects.map((subject) => (
+                        <span
+                          key={`${lvl.title}-${subject}`}
+                          className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-600"
+                        >
+                          {subject}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

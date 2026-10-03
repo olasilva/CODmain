@@ -17,7 +17,7 @@ const PROGRAMMES = [
     value: 'Regular Track',
     label: 'Regular Track',
     icon: 'bx-book-open',
-    desc: 'Academic classes from Nursery to Primary 5',
+    desc: 'Academic classes from Discovery to Basic 5',
   },
   {
     value: 'Music Track',
@@ -35,14 +35,15 @@ const PROGRAMMES = [
 
 // ─── Regular Track classes ───
 const REGULAR_CLASSES = [
+  'Discovery',
+  'Pre Nursery',
   'Nursery 1',
   'Nursery 2',
-  'Nursery 3',
-  'Primary 1',
-  'Primary 2',
-  'Primary 3',
-  'Primary 4',
-  'Primary 5',
+  'Basic 1',
+  'Basic 2',
+  'Basic 3',
+  'Basic 4',
+  'Basic 5',
 ];
 
 // ─── Music Track instruments ───
@@ -568,7 +569,7 @@ export default function Application() {
                   </Field>
                   <p className="text-xs text-black/40 mt-1.5 font-ebrima flex items-center gap-1">
                     <i className="bx bx-info-circle" aria-hidden="true" />
-                    Nursery 1 through Primary 5.
+                    Discovery through Basic 5.
                   </p>
                 </div>
               )}

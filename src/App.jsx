@@ -7,6 +7,7 @@ import Loader from './components/Loader';
 import Home from './pages/Home';
 import MusicTrack from './pages/MusicTrack';
 import RegularTrack from './pages/RegularTrack';
+import AdultEducation from './pages/AdultEducation';
 import MixedTrack from './pages/MixedTrack';
 import Enroll from './pages/enroll';
 import Login from './pages/Login';
@@ -117,6 +118,7 @@ export default function App() {
           {/* ═══════════════ Programme Pages ═══════════════ */}
           <Route path="/programmes/music-track" element={<MusicTrack />} />
           <Route path="/programmes/regular-track" element={<RegularTrack />} />
+          <Route path="/programmes/adult-education" element={<AdultEducation />} />
           <Route path="/programmes/mixed-track" element={<MixedTrack />} />
 
           {/* ═══════════════ Enrollment Flow ═══════════════ */}

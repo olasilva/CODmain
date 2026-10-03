@@ -4,7 +4,7 @@
 
 export const student = {
   name: "Adaeze Okonkwo",
-  className: "Primary 5A",
+  className: "Basic 5A",
   studentId: "COD/2024/P5/012",
   session: "2025/2026",
   termLabel: "Term 3, Week 8",
@@ -132,7 +132,7 @@ export const resultsByTerm = {
     needsAttention: { name: "Yoruba Language", score: 73 },
     teacherRemark: {
       text: "Adaeze demonstrates excellent academic ability and a strong work ethic. Outstanding performance this term!",
-      teacher: "Mrs. Funmilayo Adebayo, Class Teacher, Primary 5A",
+      teacher: "Mrs. Funmilayo Adebayo, Class Teacher, Basic 5A",
     },
     dateIssued: "7 July 2026",
   },

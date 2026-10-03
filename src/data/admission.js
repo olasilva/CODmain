@@ -17,8 +17,15 @@ export const admissionTracks = [
     name: "Regular Track",
     description: "Early childhood & primary education programmes",
     courses: [
-      "Pre School", "Discovery", "Nursery 1", "Nursery 2",
-      "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5",
+      "Discovery",
+      "Pre Nursery",
+      "Nursery 1",
+      "Nursery 2",
+      "Basic 1",
+      "Basic 2",
+      "Basic 3",
+      "Basic 4",
+      "Basic 5",
     ],
   },
   {

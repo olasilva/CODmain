@@ -61,7 +61,7 @@ export default function AdminAddStudentModal({ isOpen, onClose }) {
                 name="class"
                 value={formData.class}
                 onChange={handleChange}
-                placeholder="e.g. Primary 3"
+                placeholder="e.g. Basic 3"
                 className="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:border-[#1A73E8] text-sm"
                 required
               />

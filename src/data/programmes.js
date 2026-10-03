@@ -34,4 +34,20 @@ export const regularTrack = {
   ],
 };
 
-export const tracks = [musicTrack, regularTrack];
+export const adultEducationTrack = {
+  slug: "adult-education",
+  name: "Adult Education",
+  tagline: "Flexible music lessons for adults with structured fees, attendance plans, and accessible learning schedules.",
+  icon: "user",
+  courses: [
+    { code: "P", name: "Piano" },
+    { code: "G", name: "Guitars" },
+    { code: "V", name: "Violin" },
+    { code: "D", name: "Drums" },
+    { code: "S", name: "Saxophone" },
+    { code: "T", name: "Trumpet" },
+    { code: "V", name: "Vocals" },
+  ],
+};
+
+export const tracks = [musicTrack, regularTrack, adultEducationTrack];

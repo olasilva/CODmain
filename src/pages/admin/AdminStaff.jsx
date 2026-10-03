@@ -17,14 +17,15 @@ import Avatar from '../../components/Avatar';
 
 // ─── Category definitions ───
 const REGULAR_LEVELS = [
+  'Discovery',
+  'Pre Nursery',
   'Nursery 1',
   'Nursery 2',
-  'Nursery 3',
-  'Primary 1',
-  'Primary 2',
-  'Primary 3',
-  'Primary 4',
-  'Primary 5',
+  'Basic 1',
+  'Basic 2',
+  'Basic 3',
+  'Basic 4',
+  'Basic 5',
 ];
 
 const MUSIC_LEVELS = [
@@ -47,7 +48,7 @@ const CATEGORIES = [
   {
     value: 'regular',
     label: 'Regular Track',
-    desc: 'Nursery – Primary 5 academic classes',
+    desc: 'Discovery – Basic 5 academic classes',
     icon: 'bx-book-open',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
