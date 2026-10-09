@@ -11,6 +11,8 @@ import AdultEducation from './pages/AdultEducation';
 import MixedTrack from './pages/MixedTrack';
 import Enroll from './pages/enroll';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import SignUp from './pages/SignUp';
 import Application from './pages/application';
 import CreateAccount from './pages/admission/createAccount';
@@ -57,6 +59,7 @@ import AdminStudents from './pages/admin/AdminStudents';
 import AdminStaff from './pages/admin/AdminStaff';
 import AdminCourses from './pages/admin/AdminCourses';
 import AdminPayments from './pages/admin/AdminPayments';
+import AdminAdmissions from './pages/admin/AdminAdmissions';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminStudentProfile from './pages/admin/AdminStudentprofile';
@@ -96,15 +99,8 @@ export default function App() {
           <Route path="/programmes" element={<Programmes />} />
           <Route path="/admission" element={<Application />} />
           <Route path="/welcome" element={<Welcome />} />
-          <Route
-            path="/forgot-password"
-            element={
-              <Placeholder
-                title="Forgot password"
-                body="Password recovery is coming soon."
-              />
-            }
-          />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route
             path="/terms"
             element={
@@ -225,6 +221,7 @@ export default function App() {
             <Route path="programmes" element={<AdminCourses />} />
 
             <Route path="payments" element={<AdminPayments />} />
+            <Route path="admissions" element={<AdminAdmissions />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="settings" element={<AdminSettings />} />
 

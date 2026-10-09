@@ -159,7 +159,10 @@ async function request(path, options = {}) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.error || data.message || "Request failed");
+      const error = new Error(data.error || data.message || "Request failed");
+      error.status = response.status;
+      error.data = data;
+      throw error;
     }
 
     return data;
@@ -264,10 +267,30 @@ export async function changePassword(data) {
   });
 }
 
+export async function requestPasswordReset(email, redirectUrl) {
+  return request("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email, redirectUrl }),
+  });
+}
+
+export async function resetPassword({ token, password }) {
+  return request("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, password }),
+  });
+}
+
 // ============ STUDENT PROFILE ============
 
 export async function getStudentProfile() {
   return request("/student/profile");
+}
+
+export async function requestStudentIdCard() {
+  return request("/student/id-card-requests", {
+    method: "POST",
+  });
 }
 
 export async function updateStudentProfile(data) {
@@ -337,6 +360,18 @@ export async function createApplication(application) {
   return startAdmission(application);
 }
 
+export async function getAdminAdmissions(params = {}) {
+  const qs = new URLSearchParams(params).toString();
+  return request(`/admin/admissions${qs ? `?${qs}` : ""}`);
+}
+
+export async function updateAdminAdmissionStatus(admissionId, status, loginUrl) {
+  return request(`/admin/admissions/${encodeURIComponent(admissionId)}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status, ...(loginUrl && { loginUrl }) }),
+  });
+}
+
 // ============ PROGRAMMES ============
 
 export async function getProgrammes() {
@@ -370,6 +405,19 @@ export async function getInvoices() {
 
 export async function recordPayment(payment) {
   return initializePayment(payment);
+}
+
+// Bank transfer — student submits proof of payment
+export async function submitBankTransfer(payload) {
+  return request("/payments/bank-transfer", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+// Bank details for the school's manual transfer account
+export async function getBankDetails() {
+  return request("/payments/bank-details");
 }
 
 // ============ NEWS / BLOG (public) ============
@@ -454,6 +502,29 @@ export async function updateStudent(studentId, data) {
     method: "PUT",
     body: JSON.stringify(data),
   });
+}
+
+export async function updateStudentId(studentId, studentIdNumber) {
+  return request(`/admin/students/${encodeURIComponent(studentId)}/student-id`, {
+    method: "PUT",
+    body: JSON.stringify({ studentId: studentIdNumber }),
+  });
+}
+
+export async function getStudentIdCardRequests(studentId) {
+  return request(
+    `/admin/students/${encodeURIComponent(studentId)}/id-card-requests`
+  );
+}
+
+export async function approveStudentIdCardRequest(studentId, requestId, studentType) {
+  return request(
+    `/admin/students/${encodeURIComponent(studentId)}/id-card-requests/${encodeURIComponent(requestId)}/approve`,
+    {
+      method: "POST",
+      body: JSON.stringify({ studentType }),
+    }
+  );
 }
 
 export async function updateAdminStudent(studentId, data) {
@@ -566,6 +637,13 @@ export async function resetStaffPassword(staffId, options = {}) {
 export async function getAdminPayments(params = {}) {
   const qs = new URLSearchParams(params).toString();
   return request(`/admin/payments${qs ? "?" + qs : ""}`);
+}
+
+export async function approveBankTransfer(paymentId, approvalDetails = {}) {
+  return request(`/admin/payments/${encodeURIComponent(paymentId)}/approve`, {
+    method: "POST",
+    body: JSON.stringify(approvalDetails),
+  });
 }
 
 export async function getAdminReports() {
@@ -718,7 +796,7 @@ export async function getAttendanceHistory(days = 30) {
   return request(`/staff/attendance/history?days=${days}`);
 }
 
-// ============ ONLINE SESSIONS (STAFF) ============
+// ============ ONLINE SESSIONS (STAFF, legacy) ============
 
 export async function createOnlineSession(data) {
   return request("/staff/sessions", {
@@ -744,7 +822,7 @@ export async function deleteOnlineSession(id) {
   });
 }
 
-// ============ ONLINE SESSIONS (STUDENT) ============
+// ============ ONLINE SESSIONS (STUDENT, legacy) ============
 
 export async function getStudentOnlineSessions() {
   return request("/student/sessions");
@@ -865,26 +943,26 @@ export async function getUnreadMessageCount() {
 
 // Student — submit own attendance
 export async function submitMyAttendance(data) {
-  return request('/student/attendance', {
-    method: 'POST',
+  return request("/student/attendance", {
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 // Staff — view student submissions
 export async function getAttendanceSubmissions(date) {
-  const qs = date ? `?date=${date}` : '';
+  const qs = date ? `?date=${date}` : "";
   return request(`/staff/attendance/submissions${qs}`);
 }
 
 // ============ STUDENT — TEACHERS / DIRECTORY / PAYMENT CONTEXT ============
 
 export async function getMyTeachers() {
-  return request('/student/teachers');
+  return request("/student/teachers");
 }
 
-export async function getStaffDirectory(query = '') {
-  const qs = query ? `?q=${encodeURIComponent(query)}` : '';
+export async function getStaffDirectory(query = "") {
+  const qs = query ? `?q=${encodeURIComponent(query)}` : "";
   return request(`/student/staff-directory${qs}`);
 }
 
@@ -893,26 +971,26 @@ export async function getConversationWithTeacher(teacherUserId) {
 }
 
 export async function getPaymentContext() {
-  return request('/student/payment-context');
+  return request("/student/payment-context");
 }
 
 export async function approveStaffAttendance(attendanceId, approval) {
   return request(`/staff/attendance/${attendanceId}/approve`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ approval }),
   });
 }
 
 export async function bulkApproveStaffAttendance(ids, approval) {
-  return request('/staff/attendance/bulk-approve', {
-    method: 'POST',
+  return request("/staff/attendance/bulk-approve", {
+    method: "POST",
     body: JSON.stringify({ ids, approval }),
   });
 }
 
 export async function sendMessageToTeacher(teacherUserId, body) {
-  return request('/student/messages', {
-    method: 'POST',
+  return request("/student/messages", {
+    method: "POST",
     body: JSON.stringify({ teacherUserId, body }),
   });
 }
@@ -920,25 +998,25 @@ export async function sendMessageToTeacher(teacherUserId, body) {
 // ============ CLASS SESSIONS ============
 
 export async function getStaffSessions() {
-  return request('/staff/sessions');
+  return request("/staff/sessions");
 }
 
 export async function startStaffSession(data) {
-  return request('/staff/sessions/start', {
-    method: 'POST',
+  return request("/staff/sessions/start", {
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 export async function endStaffSession(sessionId, data = {}) {
   return request(`/staff/sessions/${sessionId}/end`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 export async function getStudentSessions() {
-  return request('/student/sessions');
+  return request("/student/sessions");
 }
 
 // ============ EXPORT DEFAULTS ============
@@ -961,9 +1039,12 @@ export default {
   getCurrentUser,
   updateProfile,
   changePassword,
+  requestPasswordReset,
+  resetPassword,
 
   // Student Profile
   getStudentProfile,
+  requestStudentIdCard,
   updateStudentProfile,
 
   // Student — my programme & classes
@@ -983,6 +1064,8 @@ export default {
   submitDocuments,
   getApplications,
   createApplication,
+  getAdminAdmissions,
+  updateAdminAdmissionStatus,
 
   // Programmes
   getProgrammes,
@@ -994,6 +1077,8 @@ export default {
   getPaymentHistory,
   getInvoices,
   recordPayment,
+  submitBankTransfer,
+  getBankDetails,
 
   // News (public)
   getNews,
@@ -1018,6 +1103,9 @@ export default {
   getStudentById,
   getAdminStudent,
   updateStudent,
+  updateStudentId,
+  getStudentIdCardRequests,
+  approveStudentIdCardRequest,
   updateAdminStudent,
   deleteStudent,
   deleteAdminStudent,
@@ -1047,6 +1135,7 @@ export default {
 
   // Admin — payments & reports
   getAdminPayments,
+  approveBankTransfer,
   getAdminReports,
 
   // Admin — report cards

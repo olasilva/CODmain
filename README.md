@@ -50,6 +50,42 @@ should return `{ transactionId, paidAt }`. The current local payment adapter is
 only a development stub and must be replaced by server-side gateway/webhook
 verification before accepting real money.
 
+For manual bank transfers, the frontend also expects `POST /payments/bank-transfer`
+to save a pending record containing `applicationId`, `amount`, `plan`, `course`,
+`trackName`, `method`, `studentName`, `payerEmail`, `payerName`, and `payerPhone`.
+`GET /admin/payments` must include those records in `{ payments: [...] }`, with
+each transfer identified by `method: "bank_transfer"` and `status: "pending"`.
+Admin approval uses `POST /admin/payments/:id/approve`; the backend must verify and
+accept `{ amountReceived, duration, durationUnit, durationDays, loginUrl }`,
+persist the approval and fee coverage, update the related admission to
+`approved`, and send the confirmation email before returning success. The
+student `/student/fees` endpoint must return the approved fee with amount,
+duration/durationDays, paidAt, and expiresAt so the portal can show the received
+amount and live countdown. Student login and portal APIs must enforce admission
+status server-side.
+
+The admin review screens expect `GET /admin/admissions` to return
+`{ admissions: [...] }` and `PUT /admin/admissions/:id/status` with
+`{ status: "approved" | "rejected", loginUrl?: string }`. Admission approval
+should be allowed only after the related fee is verified; the backend should
+update the admission, email the registered student that admission is approved,
+include the supplied login link, and return `{ emailSent: true }` only when
+delivery succeeds. `GET /admin/payments` should include
+payment method, amount, payer/student details, and status so pending transfers
+can be reviewed separately from other payment methods.
+
+Student ID-card support expects `POST /student/id-card-requests` and
+`GET /admin/students/:studentId/id-card-requests`. Admin ID edits use
+`PUT /admin/students/:studentId/student-id` with `{ studentId }`; the backend
+must persist the value and create a student notification when it changes.
+Approving a request uses `POST
+/admin/students/:studentId/id-card-requests/:requestId/approve` with
+`{ studentType: "regular" | "music" }`. The server must generate a unique
+regular ID in `COD-2026/2027-0001` format or music ID in `COD-2026-001` format,
+save it to the student profile, and return `{ student: { student_id } }`.
+The admin UI then redirects to the certificate app with `studentId` and
+`studentName` query parameters.
+
 ## Deploying to Vercel
 
 Import this repository into Vercel. It will detect the Vite setup automatically,

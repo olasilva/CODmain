@@ -44,10 +44,75 @@ function recomputeCountdown(fees) {
   };
 }
 
+function normalizeFeesResponse(response) {
+  const source = response?.fees || response?.data?.fees;
+  if (!source) return null;
+
+  const amount = Number(
+    source.amountReceived ?? source.amount_received ?? source.amount ?? 0
+  );
+  const duration = Number(
+    source.duration ?? source.durationValue ?? source.duration_value ?? 0
+  );
+  const durationUnit = String(
+    source.durationUnit || source.duration_unit || 'days'
+  ).toLowerCase();
+  const unitDays = { day: 1, days: 1, month: 30, months: 30, term: 90, terms: 90 };
+  let totalDays = Number(
+    source.totalDays ??
+      source.total_days ??
+      source.durationDays ??
+      source.duration_days ??
+      duration * (unitDays[durationUnit] || 1)
+  );
+  let paidAt =
+    source.paidAt ||
+    source.paid_at ||
+    source.approvedAt ||
+    source.approved_at ||
+    source.created_at;
+  let expiresAt = source.expiresAt || source.expires_at;
+
+  if (paidAt && expiresAt && totalDays <= 0) {
+    totalDays = Math.max(
+      1,
+      Math.ceil(
+        (new Date(expiresAt).getTime() - new Date(paidAt).getTime()) /
+          86400000
+      )
+    );
+  }
+  if (paidAt && totalDays > 0 && !expiresAt) {
+    expiresAt = new Date(
+      new Date(paidAt).getTime() + totalDays * 86400000
+    ).toISOString();
+  }
+  if (expiresAt && totalDays > 0 && !paidAt) {
+    paidAt = new Date(
+      new Date(expiresAt).getTime() - totalDays * 86400000
+    ).toISOString();
+  }
+  if (!amount || !totalDays || !expiresAt || !paidAt) return null;
+
+  return recomputeCountdown({
+    ...source,
+    amount,
+    paidAt,
+    expiresAt,
+    totalDays,
+    planLabel:
+      source.planLabel ||
+      source.plan_label ||
+      source.plan ||
+      `${duration || totalDays} ${duration ? durationUnit : 'days'}`,
+  });
+}
+
 export default function FeesCard() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [fees, setFees] = useState(null);
+  const [pending, setPending] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [preparing, setPreparing] = useState(false);
@@ -58,7 +123,9 @@ export default function FeesCard() {
       try {
         const res = await getMyFees();
         setData(res);
-        setFees(res?.fees || null);
+        setFees(normalizeFeesResponse(res));
+        // ── NEW: capture the pending payment, if any ──
+        setPending(res?.pending || res?.data?.pending || null);
       } catch (e) {
         setError(e.message || 'Could not load fees');
       } finally {
@@ -86,12 +153,10 @@ export default function FeesCard() {
       const ctx = res?.context;
 
       if (!ctx) {
-        // No admission on file — send them through the enrollment flow
         navigate('/enroll');
         return;
       }
 
-      // Navigate with full state so /payment's guards pass
       navigate('/payment', { state: ctx });
     } catch (e) {
       console.error('Failed to build payment context:', e);
@@ -122,7 +187,115 @@ export default function FeesCard() {
     );
   }
 
-  // ─── No payment yet ───
+  // ─── Pending payment (bank transfer awaiting approval) ───
+  // Shown when there's no completed payment yet, but a bank transfer
+  // has been submitted and is waiting for the admin.
+  if (!fees && pending) {
+    const submittedAt = pending.created_at || pending.submittedAt;
+    const submittedLabel = submittedAt
+      ? new Date(submittedAt).toLocaleDateString('en-NG', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : 'recently';
+
+    return (
+      <div className="bg-white rounded-2xl border border-amber-200 p-6 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+              <i className="bx bx-time-five text-xl" aria-hidden="true" />
+            </span>
+            <h2 className="text-lg font-bold text-black font-ebrima">
+              School Fees
+            </h2>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold rounded-full px-3 py-1 bg-amber-100 text-amber-800">
+            <i className="bx bx-time-five text-sm" aria-hidden="true" />
+            Pending
+          </span>
+        </div>
+
+        {/* Amount */}
+        <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 px-4 py-4 mb-4">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-amber-700 mb-1">
+            Amount Submitted
+          </p>
+          <p className="text-2xl font-bold text-[#0F4082] font-ebrima">
+            ₦{formatNumber(pending.amount)}
+          </p>
+          <p className="text-xs text-black/55 font-ebrima mt-1.5 flex items-center gap-1.5">
+            <i className="bx bx-calendar text-sm" aria-hidden="true" />
+            Submitted on {submittedLabel}
+          </p>
+          {pending.plan && (
+            <p className="text-xs text-black/55 font-ebrima mt-0.5 flex items-center gap-1.5">
+              <i className="bx bx-purchase-tag text-sm" aria-hidden="true" />
+              {pending.planLabel || pending.plan}
+            </p>
+          )}
+          {pending.reference && (
+            <p className="text-[10px] text-black/40 font-mono mt-1.5 truncate">
+              Ref: {pending.reference}
+            </p>
+          )}
+        </div>
+
+        {/* Info banner */}
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 mb-4 flex items-start gap-2">
+          <i
+            className="bx bx-info-circle text-amber-700 text-base shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
+          <p className="text-xs text-amber-900 leading-relaxed font-ebrima">
+            Your bank transfer has been received. The admin will verify and
+            approve it shortly. You'll get access to classes and materials
+            once approved.
+          </p>
+        </div>
+
+        {/* Total pending overall */}
+        {data?.totalPending > 0 && (
+          <div className="flex justify-between text-xs pt-3 border-t border-black/5 mb-3">
+            <span className="text-black/40 font-ebrima">Total pending</span>
+            <span className="font-bold text-amber-700 font-ebrima">
+              ₦{formatNumber(data.totalPending)}
+            </span>
+          </div>
+        )}
+
+        {/* Secondary action — submit another transfer */}
+        <button
+          onClick={handlePay}
+          disabled={preparing}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-[#1A73E8] text-[#1A73E8] font-bold px-5 py-3 text-sm hover:bg-[#F5F9FF] transition disabled:opacity-60"
+        >
+          {preparing ? (
+            <>
+              <i
+                className="bx bx-loader-alt animate-spin text-base"
+                aria-hidden="true"
+              />
+              Preparing…
+            </>
+          ) : (
+            <>
+              <i className="bx bx-upload text-base" aria-hidden="true" />
+              Submit Another Transfer
+            </>
+          )}
+        </button>
+
+        {prepareError && (
+          <p className="mt-3 text-xs text-red-600">{prepareError}</p>
+        )}
+      </div>
+    );
+  }
+
+  // ─── No payment at all ───
   if (!fees) {
     return (
       <div className="bg-white rounded-2xl border border-black/10 p-6 flex flex-col">
@@ -167,7 +340,7 @@ export default function FeesCard() {
     );
   }
 
-  // ─── Has payment — show status ───
+  // ─── Has completed payment — show status ───
   const styles =
     {
       active: {
@@ -305,6 +478,20 @@ export default function FeesCard() {
         </div>
       )}
 
+      {/* Pending transfer warning — shows alongside active fees if a new transfer is awaiting approval */}
+      {pending && (
+        <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 flex items-start gap-2">
+          <i
+            className="bx bx-time-five text-base shrink-0 mt-0.5"
+            aria-hidden="true"
+          />
+          <span>
+            You also have a pending transfer of ₦
+            {formatNumber(pending.amount)} awaiting approval.
+          </span>
+        </div>
+      )}
+
       {/* Total paid */}
       {data?.totalPaid > 0 && (
         <div className="mt-4 pt-4 border-t border-black/5 flex justify-between text-xs">
@@ -319,7 +506,7 @@ export default function FeesCard() {
         <p className="mt-3 text-xs text-red-600">{prepareError}</p>
       )}
 
-      {/* Renew / Pay button — always visible */}
+      {/* Renew / Pay button */}
       <button
         onClick={handlePay}
         disabled={preparing}

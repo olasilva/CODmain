@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeftIcon } from '../components/Icons';
 import { PRICING } from '../data/pricing';
-import { initializePayment, isLoggedIn, getSession } from '../lib/api';
+import { isLoggedIn, getSession, submitBankTransfer } from '../lib/api';
 
 export default function Payment() {
   const location = useLocation();
@@ -21,8 +21,8 @@ export default function Payment() {
   const session = getSession('student') || {};
 
   const [checking, setChecking] = useState(true);
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
-  const [paymentError, setPaymentError] = useState('');
+  const [submittingTransfer, setSubmittingTransfer] = useState(false);
+  const [transferError, setTransferError] = useState('');
 
   // ─── Guards: only render if we arrived through the full flow ───
   useEffect(() => {
@@ -74,44 +74,58 @@ export default function Payment() {
 
   const amountToPay = getAmount();
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
-    if (amountToPay <= 0) return;
+  const handleTransferSubmitted = async () => {
+    if (submittingTransfer || amountToPay <= 0) return;
 
-    setPaymentProcessing(true);
-    setPaymentError('');
+    setSubmittingTransfer(true);
+    setTransferError('');
+
+    const contactEmail =
+      formData?.guardianEmail ||
+      formData?.email ||
+      contextEmail ||
+      session?.email ||
+      session?.user?.email ||
+      '';
 
     try {
-      const emailToUse =
-        formData?.guardianEmail ||
-        formData?.email ||
-        contextEmail ||
-        session?.email ||
-        session?.user?.email ||
-        '';
-
-      const result = await initializePayment({
+      await submitBankTransfer({
+        applicationId,
         amount: amountToPay,
-        email: emailToUse,
+        plan: selectedPlan,
         course,
         trackName,
-        plan: selectedPlan,
-        studentName: formData?.studentName || '',
-        applicationId: applicationId || null,
-        // ← CHANGED: dedicated callback route (was /login?registered=true)
-        callbackUrl: `${window.location.origin}/payment/callback`,
+        method: 'bank_transfer',
+        studentName: formData?.studentName || session?.fullName || '',
+        payerEmail: contactEmail,
+        payerName: formData?.guardianName || '',
+        payerPhone: formData?.guardianPhone || formData?.phone || '',
       });
 
-      if (!result?.authorization_url) {
-        throw new Error('Payment gateway did not return a checkout URL');
+      // Success — go to login so the student can sign in and see status
+      navigate('/login', {
+        state: { email: contactEmail },
+      });
+    } catch (error) {
+      const msg = (error?.message || '').toLowerCase();
+
+      // ─── Special case: admission is already approved ───
+      // The student has already paid. Instead of showing an error,
+      // send them to login with a flag so they see a success banner
+      // and can access their dashboard where the payment appears.
+      if (msg.includes('already approved')) {
+        setSubmittingTransfer(false);
+        navigate('/login?approved=true', {
+          replace: true,
+          state: { email: contactEmail, from: 'payment' },
+        });
+        return;
       }
 
-      window.location.href = result.authorization_url;
-    } catch (error) {
-      setPaymentProcessing(false);
-      setPaymentError(
-        error.message || 'Payment could not be completed. Please try again.'
+      setTransferError(
+        error.message || 'Could not notify the school. Please try again.'
       );
+      setSubmittingTransfer(false);
     }
   };
 
@@ -146,10 +160,10 @@ export default function Payment() {
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-[30px] sm:text-4xl font-bold text-[#0F4082] font-ebrima leading-tight">
-              Payment
+              Bank Transfer
             </h1>
             <p className="text-sm text-black/60 font-ebrima mt-2">
-              Step 4 of 4 · Complete your enrollment by making payment
+              Step 4 of 4 · Transfer the amount below to the school account
             </p>
           </div>
 
@@ -163,7 +177,7 @@ export default function Payment() {
             Back to Programme
           </Link>
 
-          <form onSubmit={handlePayment} className="space-y-6">
+          <div className="space-y-6">
             {/* ─── Programme Summary ─── */}
             <section className="rounded-3xl bg-white border border-black/10 p-6 sm:p-8 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
@@ -184,6 +198,18 @@ export default function Payment() {
                 )}
                 {formData?.studentName && (
                   <SummaryRow icon="bx-user" label="Student" value={formData.studentName} />
+                )}
+                <SummaryRow
+                  icon="bx-envelope"
+                  label="Contact email"
+                  value={formData?.guardianEmail || formData?.email || contextEmail || session?.email || session?.user?.email || '—'}
+                />
+                {(formData?.guardianPhone || formData?.phone || session?.phone) && (
+                  <SummaryRow
+                    icon="bx-phone"
+                    label="Phone"
+                    value={formData?.guardianPhone || formData?.phone || session?.phone}
+                  />
                 )}
                 {formData?.regularClass && (
                   <SummaryRow icon="bx-group" label="Class" value={formData.regularClass} />
@@ -279,70 +305,49 @@ export default function Payment() {
                   <i className="bx bx-credit-card text-base" aria-hidden="true" />
                 </span>
                 <h2 className="text-[#1A73E8] font-bold font-ebrima">
-                  Payment Options
+                  School Bank Details
                 </h2>
               </div>
               <div className="h-px bg-black/10 mb-5" />
 
-              <p className="text-sm text-black/60 font-ebrima mb-4">
-                You'll be redirected to{' '}
-                <span className="font-bold text-[#1A73E8]">Paystack</span>'s
-                secure checkout where you can pay with:
+              <p className="text-sm text-black/60 font-ebrima mb-5">
+                Make a bank transfer for the exact amount shown above. Include the student&apos;s name as the transfer narration.
               </p>
 
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <PayOption icon="bx-credit-card" label="Debit / Credit Card" />
-                <PayOption icon="bx-building-house" label="Bank Transfer" />
-                <PayOption icon="bx-mobile" label="USSD" />
-                <PayOption icon="bx-lock-alt" label="Paystack Account" />
-              </div>
+              <dl className="divide-y divide-black/10 rounded-xl border border-black/10 px-4">
+                <BankDetail label="Bank" value="Zenith Bank" />
+                <BankDetail label="Account number" value="1219258176" />
+                <BankDetail label="Account name" value="Clan of David Music" />
+                <BankDetail label="Amount to pay" value={`₦${amountToPay.toLocaleString()}`} />
+              </dl>
 
-              <div className="rounded-xl bg-[#F5F9FF] border border-[#1A73E8]/15 p-3 flex items-start gap-2">
-                <i
-                  className="bx bx-shield-quarter text-[#1A73E8] text-base shrink-0 mt-0.5"
-                  aria-hidden="true"
-                />
-                <p className="text-xs text-black/60 font-ebrima leading-relaxed">
-                  All payments are processed securely by Paystack. Clan of David
-                  Academy does not store your card details.
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 mt-5 flex items-start gap-3">
+                <i className="bx bx-info-circle text-amber-700 text-lg shrink-0 mt-0.5" aria-hidden="true" />
+                <p className="text-sm text-amber-900 font-ebrima leading-relaxed">
+                  Your admission remains pending while the transfer is verified. The school admin will approve your admission and send a confirmation to the contact email above. Student access is available after approval.
                 </p>
               </div>
             </section>
 
-            {paymentError && (
-              <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700 flex items-start gap-2">
-                <i className="bx bx-error-circle text-lg shrink-0" aria-hidden="true" />
-                <span>{paymentError}</span>
-              </div>
+            {transferError && (
+              <p className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+                {transferError}
+              </p>
             )}
 
             <button
-              type="submit"
-              disabled={amountToPay <= 0 || paymentProcessing}
-              className={`w-full h-14 rounded-full font-bold text-base font-ebrima transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-md ${
-                amountToPay > 0 && !paymentProcessing
-                  ? 'bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] text-white hover:opacity-95 active:scale-[0.98]'
-                  : 'bg-[#1A73E8]/30 text-white/70 cursor-not-allowed'
-              }`}
+              type="button"
+              onClick={handleTransferSubmitted}
+              disabled={submittingTransfer || amountToPay <= 0}
+              className="w-full h-14 rounded-full bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] text-white font-bold text-base font-ebrima transition inline-flex items-center justify-center gap-2 shadow-md hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {paymentProcessing ? (
-                <>
-                  <i className="bx bx-loader-alt animate-spin text-lg" aria-hidden="true" />
-                  Redirecting to Paystack…
-                </>
-              ) : (
-                <>
-                  <i className="bx bx-credit-card text-lg" aria-hidden="true" />
-                  Pay ₦{amountToPay.toLocaleString()}
-                </>
-              )}
+              <i className={`bx ${submittingTransfer ? 'bx-loader-alt animate-spin' : 'bx-check-circle'} text-lg`} aria-hidden="true" />
+              {submittingTransfer ? 'Submitting transfer…' : 'I have made payment'}
             </button>
-
-            <p className="text-center text-xs text-black/40 font-ebrima">
-              By proceeding, you agree to our terms and conditions. Payment is
-              non-refundable.
+            <p className="text-center text-xs text-black/45 font-ebrima">
+              Sign in to check your admission status. Portal access opens after approval.
             </p>
-          </form>
+          </div>
         </div>
       </main>
 
@@ -431,13 +436,11 @@ function PlanCard({ label, price, sub, selected, onClick, icon, savings }) {
   );
 }
 
-function PayOption({ icon, label }) {
+function BankDetail({ label, value }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-black/10 bg-[#FAFBFF] px-3 py-2.5">
-      <i className={`bx ${icon} text-lg text-[#1A73E8]`} aria-hidden="true" />
-      <span className="text-xs font-semibold text-black/70 font-ebrima">
-        {label}
-      </span>
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+      <dt className="text-sm text-black/55 font-ebrima">{label}</dt>
+      <dd className="text-sm font-bold text-black font-ebrima text-right">{value}</dd>
     </div>
   );
 }

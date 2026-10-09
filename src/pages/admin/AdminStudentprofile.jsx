@@ -1,17 +1,47 @@
 // src/pages/admin/AdminStudentprofile.jsx
+import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getStudentById } from '../../lib/api';
+import {
+  getStudentById,
+  getStudentIdCardRequests,
+  updateStudentId,
+  approveStudentIdCardRequest,
+} from '../../lib/api';
 import useFetch from '../../lib/useFetch';
+
+const ID_CARD_APP_URL = 'https://clanofdavid-certificate.vercel.app';
 
 export default function AdminStudentProfile() {
   const { studentId } = useParams();
   const navigate = useNavigate();
 
-  const { data, loading, error } = useFetch(
+  const { data, loading, error, refetch } = useFetch(
     () => getStudentById(studentId),
     [studentId],
     { initialData: null }
   );
+  const {
+    data: idCardData,
+    loading: idCardLoading,
+    error: idCardLoadError,
+    refetch: refetchIdCardRequests,
+  } = useFetch(
+    () => getStudentIdCardRequests(studentId),
+    [studentId],
+    { initialData: { requests: [] } }
+  );
+  const [editingStudentId, setEditingStudentId] = useState(false);
+  const [studentIdDraft, setStudentIdDraft] = useState('');
+  const [savingStudentId, setSavingStudentId] = useState(false);
+  const [approvingRequestId, setApprovingRequestId] = useState(null);
+  const [idCardActionError, setIdCardActionError] = useState('');
+  const [idCardActionSuccess, setIdCardActionSuccess] = useState('');
+
+  useEffect(() => {
+    if (data?.student?.student_id) {
+      setStudentIdDraft(data.student.student_id);
+    }
+  }, [data?.student?.student_id]);
 
   const student = data?.student || null;
   const payments = data?.payments || [];
@@ -43,6 +73,77 @@ export default function AdminStudentProfile() {
 
   const latestPayment = payments[0];
   const latestAdmission = admissions[0];
+  const idCardRequests = Array.isArray(idCardData)
+    ? idCardData
+    : idCardData?.requests || [];
+  const isMusicStudent = [
+    student.programme,
+    latestAdmission?.track_name,
+    latestAdmission?.course,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+    .includes('music');
+  const studentIdPattern = isMusicStudent
+    ? /^COD-2026-\d{3}$/
+    : /^COD-2026\/2027-\d{4}$/;
+  const expectedIdFormat = isMusicStudent
+    ? 'COD-2026-001'
+    : 'COD-2026/2027-0001';
+
+  const handleSaveStudentId = async (event) => {
+    event.preventDefault();
+    const nextId = studentIdDraft.trim().toUpperCase();
+    if (!studentIdPattern.test(nextId)) {
+      setIdCardActionError(`Use this format: ${expectedIdFormat}`);
+      return;
+    }
+
+    setSavingStudentId(true);
+    setIdCardActionError('');
+    setIdCardActionSuccess('');
+    try {
+      await updateStudentId(student.id, nextId);
+      setIdCardActionSuccess('Student ID updated. A notification should be sent to the student.');
+      setEditingStudentId(false);
+      refetch();
+    } catch (updateError) {
+      setIdCardActionError(updateError.message || 'Could not update the student ID.');
+    } finally {
+      setSavingStudentId(false);
+    }
+  };
+
+  const handleGenerateIdCard = async (request) => {
+    setApprovingRequestId(request.id);
+    setIdCardActionError('');
+    setIdCardActionSuccess('');
+    try {
+      const result = await approveStudentIdCardRequest(
+        student.id,
+        request.id,
+        isMusicStudent ? 'music' : 'regular'
+      );
+      const updatedStudent = result?.student || result?.data?.student || {};
+      const assignedId =
+        updatedStudent.student_id || result?.student_id || result?.studentId || student.student_id;
+      if (!assignedId) {
+        throw new Error('The server did not return the generated student ID.');
+      }
+      setIdCardActionSuccess('ID card approved and student ID generated. Redirecting…');
+      const query = new URLSearchParams({
+        studentId: assignedId,
+        studentName: student.full_name || '',
+      });
+      window.location.assign(`${ID_CARD_APP_URL}/?${query.toString()}`);
+    } catch (approveError) {
+      setIdCardActionError(approveError.message || 'Could not generate this student ID card.');
+      refetchIdCardRequests();
+    } finally {
+      setApprovingRequestId(null);
+    }
+  };
   const submittedCount = reportCards.filter(
     (r) => r.status === 'submitted'
   ).length;
@@ -151,6 +252,115 @@ export default function AdminStudentProfile() {
           valueColor="text-black"
         />
       </div>
+
+      {(idCardActionError || idCardActionSuccess) && (
+        <div
+          className={`mb-5 rounded-xl border p-4 text-sm ${idCardActionError ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}
+          role={idCardActionError ? 'alert' : 'status'}
+        >
+          {idCardActionError || idCardActionSuccess}
+        </div>
+      )}
+
+      <Section title="Student ID">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-black/45">
+              {isMusicStudent ? 'Music student format' : 'Regular student format'}
+            </p>
+            {!editingStudentId && (
+              <p className="mt-1 font-mono text-lg font-bold text-[#1A73E8]">
+                {student.student_id || 'Not assigned'}
+              </p>
+            )}
+          </div>
+          {!editingStudentId && (
+            <button
+              type="button"
+              onClick={() => {
+                setStudentIdDraft(student.student_id || '');
+                setEditingStudentId(true);
+                setIdCardActionError('');
+              }}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#1A73E8] px-4 text-sm font-bold text-[#1A73E8] hover:bg-blue-50"
+            >
+              <i className="bx bx-edit" aria-hidden="true" />
+              Edit student ID
+            </button>
+          )}
+        </div>
+        {editingStudentId && (
+          <form onSubmit={handleSaveStudentId} className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <div className="flex-1">
+              <label htmlFor="student-id-number" className="mb-1.5 block text-sm font-semibold text-black/70">
+                Student ID <span className="font-normal text-black/45">({expectedIdFormat})</span>
+              </label>
+              <input
+                id="student-id-number"
+                value={studentIdDraft}
+                onChange={(event) => setStudentIdDraft(event.target.value)}
+                className="h-11 w-full rounded-lg border border-black/20 px-3 font-mono text-sm outline-none focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/15"
+                required
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <button
+                type="submit"
+                disabled={savingStudentId}
+                className="h-11 rounded-lg bg-[#1A73E8] px-4 text-sm font-bold text-white disabled:opacity-60"
+              >
+                {savingStudentId ? 'Saving…' : 'Save ID'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingStudentId(false)}
+                className="h-11 rounded-lg border border-black/15 px-4 text-sm font-bold text-black/65"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </Section>
+
+      <Section title="ID Card Requests">
+        {idCardLoading ? (
+          <p className="py-4 text-sm text-black/50">Loading ID-card requests…</p>
+        ) : idCardLoadError ? (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            ID-card requests could not be loaded. The admin ID-card request API must be enabled.
+          </p>
+        ) : idCardRequests.length === 0 ? (
+          <Empty text="No ID-card requests submitted." />
+        ) : (
+          <div className="space-y-3">
+            {idCardRequests.map((request) => (
+              <div key={request.id} className="flex flex-col gap-3 rounded-xl border border-black/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-bold text-black">{student.full_name}</p>
+                  <p className="mt-1 text-xs text-black/50">
+                    Submitted {request.created_at ? new Date(request.created_at).toLocaleDateString('en-NG') : 'recently'}
+                  </p>
+                  <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-bold capitalize ${request.status === 'approved' ? 'bg-green-100 text-green-700' : request.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {request.status || 'pending'}
+                  </span>
+                </div>
+                {request.status !== 'approved' && request.status !== 'rejected' && (
+                  <button
+                    type="button"
+                    onClick={() => handleGenerateIdCard(request)}
+                    disabled={approvingRequestId === request.id}
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                  >
+                    <i className={`bx ${approvingRequestId === request.id ? 'bx-loader-alt animate-spin' : 'bx-id-card'} text-lg`} aria-hidden="true" />
+                    {approvingRequestId === request.id ? 'Generating…' : 'Generate ID card'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </Section>
 
       {/* ─── Classes & Teachers ─── */}
       {classes.length > 0 && (

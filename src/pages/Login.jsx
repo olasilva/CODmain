@@ -5,7 +5,14 @@ import { GoogleLogin } from '@react-oauth/google';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import logo from '../assets/logo.jpg';
-import { loginUser, googleLogin } from '../lib/api';
+import {
+  loginUser,
+  googleLogin,
+  getAdmissionStatus,
+  getPaymentHistory,
+  getMyFees,
+  logoutUser,
+} from '../lib/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,6 +24,13 @@ export default function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [admissionNotice, setAdmissionNotice] = useState(null);
+
+  React.useEffect(() => {
+    if (location.state?.email) {
+      setFormData((current) => ({ ...current, email: location.state.email }));
+    }
+  }, [location.state]);
 
   // Read and validate the Google client ID
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
@@ -36,19 +50,153 @@ export default function Login() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const clearStudentLogin = () => {
+    logoutUser('student');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
+
+  const finishLogin = async (session) => {
+    const user = session.user || {};
+    const role = user.role || selectedRole;
+
+    localStorage.setItem('token', session.token);
+    localStorage.setItem('user', JSON.stringify(user));
+
+    if (role !== 'student') {
+      navigate('/staff/dashboard');
+      return;
+    }
+
+    let result = null;
+    let admissionStatusUnavailable = false;
+    try {
+      result = await getAdmissionStatus();
+    } catch {
+      admissionStatusUnavailable = true;
+    }
+
+    const status = [
+      result?.admission?.status,
+      result?.admission?.admission_status,
+      result?.application?.status,
+      result?.admissions?.[0]?.status,
+      result?.data?.admission?.status,
+      result?.data?.application?.status,
+      result?.data?.admissions?.[0]?.status,
+      result?.data?.admission_status,
+      result?.admission_status,
+      result?.admissionStatus?.status,
+      result?.admissionStatus,
+      user.admission?.status,
+      user.admission_status,
+      user.admissionStatus?.status,
+      user.admissionStatus,
+      result?.data?.status,
+      result?.status,
+    ]
+      .map((value) => String(value || '').toLowerCase())
+      .find((value) => value && !['success', 'successful', 'ok'].includes(value)) || '';
+
+    const paymentStatuses = [
+      result?.payment?.status,
+      result?.latest_payment?.status,
+      result?.latestPayment?.status,
+      result?.payment_status,
+      result?.paymentStatus?.status,
+      result?.data?.payment?.status,
+      result?.data?.payment_status,
+      user.payment?.status,
+      user.latest_payment?.status,
+      user.latestPayment?.status,
+      user.payment_status,
+      user.paymentStatus?.status,
+      session.payment?.status,
+      session.payment_status,
+    ];
+
+    let paymentHistoryUnavailable = false;
+    try {
+      const paymentHistory = await getPaymentHistory();
+      const payments = Array.isArray(paymentHistory)
+        ? paymentHistory
+        : paymentHistory?.payments ||
+          paymentHistory?.history ||
+          paymentHistory?.paymentHistory ||
+          paymentHistory?.transactions ||
+          paymentHistory?.data?.payments ||
+          paymentHistory?.data?.history ||
+          paymentHistory?.data?.paymentHistory ||
+          paymentHistory?.data?.transactions ||
+          (Array.isArray(paymentHistory?.data) ? paymentHistory.data : []);
+      paymentStatuses.push(
+        ...payments.flatMap((payment) => [
+          payment.status,
+          payment.payment_status,
+          payment.paymentStatus,
+        ])
+      );
+    } catch {
+      paymentHistoryUnavailable = true;
+    }
+
+    let studentFees = null;
+    let feesUnavailable = false;
+    try {
+      const feesResult = await getMyFees();
+      studentFees = feesResult?.fees || feesResult?.data?.fees || null;
+    } catch {
+      feesUnavailable = true;
+    }
+
+    const paymentVerified = paymentStatuses.some((paymentStatus) =>
+      ['approved', 'completed', 'paid', 'success', 'successful', 'verified'].includes(
+        String(paymentStatus || '').toLowerCase()
+      )
+    );
+    const feeStatus = String(studentFees?.status || '').toLowerCase();
+    const expiry = studentFees?.expiresAt || studentFees?.expires_at;
+    const hasCurrentFee =
+      ['active', 'expiring-soon', 'paid', 'completed', 'verified'].includes(feeStatus) ||
+      (Number(studentFees?.amount) > 0 &&
+        expiry &&
+        new Date(expiry).getTime() > Date.now() &&
+        feeStatus !== 'expired');
+
+    if (
+      status === 'approved' ||
+      ((paymentVerified || hasCurrentFee) && status !== 'rejected')
+    ) {
+      const name = user.fullName || user.full_name || user.name || 'Student';
+      setAdmissionNotice({ type: 'approved', name });
+      window.setTimeout(() => {
+        navigate('/student/dashboard', { replace: true });
+      }, 1500);
+      return;
+    }
+
+    clearStudentLogin();
+    setAdmissionNotice(
+      admissionStatusUnavailable && paymentHistoryUnavailable && feesUnavailable
+        ? {
+            type: 'unverified',
+            email: user.email || user.guardian_email || formData.email,
+          }
+        : {
+            type: status === 'rejected' ? 'rejected' : 'pending',
+            email: user.email || user.guardian_email || formData.email,
+          }
+    );
+    setIsSubmitting(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
     try {
       const session = await loginUser({ ...formData, role: selectedRole });
-      localStorage.setItem('token', session.token);
-      localStorage.setItem('user', JSON.stringify(session.user));
-      navigate(
-        session.user.role === 'staff' || session.user.role === 'admin'
-          ? '/staff/dashboard'
-          : '/student/dashboard'
-      );
+      await finishLogin(session);
     } catch (loginError) {
       setError(loginError.message || 'Login failed');
       setIsSubmitting(false);
@@ -66,14 +214,7 @@ export default function Login() {
         role: selectedRole,
       });
 
-      localStorage.setItem('token', session.token);
-      localStorage.setItem('user', JSON.stringify(session.user));
-
-      navigate(
-        session.user.role === 'staff' || session.user.role === 'admin'
-          ? '/staff/dashboard'
-          : '/student/dashboard'
-      );
+      await finishLogin(session);
     } catch (err) {
       setError(err.message || 'Google login failed');
       setIsSubmitting(false);
@@ -227,6 +368,52 @@ export default function Login() {
         </div>
       </main>
       <Footer />
+      {admissionNotice && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4" role="presentation">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admission-notice-title"
+            className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl"
+          >
+            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${admissionNotice.type === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+              <i className={`bx ${admissionNotice.type === 'approved' ? 'bx-check' : 'bx-time-five'} text-2xl`} aria-hidden="true" />
+            </div>
+            <h2 id="admission-notice-title" className="text-xl font-bold text-[#0F4082]">
+              {admissionNotice.type === 'approved'
+                ? `Welcome, ${admissionNotice.name}!`
+                : admissionNotice.type === 'rejected'
+                ? 'Admission not approved'
+                : admissionNotice.type === 'unverified'
+                ? 'Status could not be checked'
+                : 'Admission in progress'}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-black/65">
+              {admissionNotice.type === 'approved'
+                ? 'Your admission is approved. Opening your student portal…'
+                : admissionNotice.type === 'rejected'
+                ? 'Please contact the school for more information about your application.'
+                : admissionNotice.type === 'unverified'
+                ? 'We could not verify your admission status right now. Please try signing in again shortly.'
+                : 'This account still has a pending admission. Make sure you signed in with the same email used for the approved payment. If this is the correct account, ask the admin to approve its admission.'}
+            </p>
+            {admissionNotice.type !== 'approved' && admissionNotice.email && (
+              <p className="mt-3 break-all text-xs text-black/45">
+                Signed in as {admissionNotice.email}
+              </p>
+            )}
+            {admissionNotice.type !== 'approved' && (
+              <button
+                type="button"
+                onClick={() => setAdmissionNotice(null)}
+                className="mt-6 h-11 w-full rounded-full bg-[#1A73E8] text-sm font-bold text-white hover:bg-[#0F4082]"
+              >
+                Okay
+              </button>
+            )}
+          </section>
+        </div>
+      )}
     </div>
   );
 }

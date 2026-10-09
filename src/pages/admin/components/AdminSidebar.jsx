@@ -18,6 +18,7 @@ const menuItems = [
   { icon: PeopleIcon, label: 'Students', path: '/admin/students' },
   { icon: PeopleIcon, label: 'Staff', path: '/admin/staff' },
   { icon: CoursesIcon, label: 'Courses', path: '/admin/courses' },
+  { icon: PeopleIcon, label: 'Admissions', path: '/admin/admissions' },
   { icon: PaymentsIcon, label: 'Payments', path: '/admin/payments' },
   { icon: ReportsIcon, label: 'Reports', path: '/admin/reports' },
   { icon: NewsIcon, label: 'Blog & News', path: '/admin/blog' },

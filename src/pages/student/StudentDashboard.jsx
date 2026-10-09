@@ -4,13 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import ProgrammeCard from '../../components/ProgrammeCard';
 import FeesCard from '../../components/FeesCard';
 import AttendanceCard from '../../components/AttendanceCard';
-import { getSession, isLoggedIn, getStudentProfile } from '../../lib/api';
+import {
+  getSession,
+  isLoggedIn,
+  getStudentProfile,
+  requestStudentIdCard,
+} from '../../lib/api';
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
+  const [idCardStatus, setIdCardStatus] = useState('none');
+  const [idCardError, setIdCardError] = useState('');
+  const [requestingIdCard, setRequestingIdCard] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn('student') || !getSession('student')) {
@@ -19,12 +27,32 @@ export default function StudentDashboard() {
     }
 
     const session = getSession('student');
-    if (session) setUser(session);
+    if (session) {
+      setUser(session);
+      setIdCardStatus(
+        session.id_card_request?.status ||
+          session.idCardRequest?.status ||
+          session.id_card_request_status ||
+          'none'
+      );
+    }
 
     (async () => {
       try {
         const profile = await getStudentProfile();
-        if (profile) setUser((prev) => ({ ...(prev || {}), ...profile }));
+        if (profile) {
+          const profileData = profile.student || profile.profile || profile;
+          setUser((prev) => ({ ...(prev || {}), ...profileData }));
+          setIdCardStatus(
+            profile.id_card_request?.status ||
+              profile.idCardRequest?.status ||
+              profile.id_card_request_status ||
+              profileData.id_card_request?.status ||
+              profileData.idCardRequest?.status ||
+              profileData.id_card_request_status ||
+              'none'
+          );
+        }
       } catch (e) {
         console.warn('Could not load profile:', e.message);
       } finally {
@@ -32,6 +60,23 @@ export default function StudentDashboard() {
       }
     })();
   }, [navigate]);
+
+  const handleRequestIdCard = async () => {
+    setRequestingIdCard(true);
+    setIdCardError('');
+    try {
+      const result = await requestStudentIdCard();
+      setIdCardStatus(
+        result?.request?.status || result?.status || 'pending'
+      );
+    } catch (requestError) {
+      setIdCardError(requestError.message || 'Could not submit your ID-card request.');
+    } finally {
+      setRequestingIdCard(false);
+    }
+  };
+
+  const studentIdNumber = user?.student_id || user?.student?.student_id;
 
   if (loading) {
     return (
@@ -69,6 +114,46 @@ export default function StudentDashboard() {
         <ProgrammeCard />
         <FeesCard />
       </div>
+
+      <section className="mb-4 rounded-2xl border border-black/10 bg-white p-6 sm:p-7">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EAF2FD] text-[#1A73E8]">
+              <i className="bx bx-id-card text-2xl" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-black/45">Student identification</p>
+              <h2 className="mt-1 text-lg font-bold text-black font-ebrima">Student ID</h2>
+              <p className="mt-1 font-mono text-sm font-bold text-[#1A73E8]">
+                {studentIdNumber || 'Not assigned yet'}
+              </p>
+              <p className="mt-2 text-sm text-black/55">
+                {idCardStatus === 'pending'
+                  ? 'Your ID-card request is waiting for admin review.'
+                  : idCardStatus === 'approved'
+                  ? 'Your ID-card request has been approved.'
+                  : 'Submit a request to have your student ID card generated.'}
+              </p>
+            </div>
+          </div>
+          {idCardStatus !== 'pending' && idCardStatus !== 'approved' && (
+            <button
+              type="button"
+              onClick={handleRequestIdCard}
+              disabled={requestingIdCard}
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#1A73E8] px-5 text-sm font-bold text-white transition hover:bg-[#0F4082] disabled:opacity-60"
+            >
+              <i className={`bx ${requestingIdCard ? 'bx-loader-alt animate-spin' : 'bx-send'} text-lg`} aria-hidden="true" />
+              {requestingIdCard ? 'Submitting…' : 'Apply for ID card'}
+            </button>
+          )}
+        </div>
+        {idCardError && (
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
+            {idCardError}
+          </p>
+        )}
+      </section>
 
       {/* ─── Attendance + Learn More ─── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
