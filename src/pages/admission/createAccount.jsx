@@ -1,16 +1,25 @@
 // src/pages/admission/CreateAccount.jsx
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import { registerUser, isLoggedIn, getSession, logoutUser } from '../../lib/api';
 
+// Slugify a name → "David Emmanuel" => "david-emmanuel"
+function slugifyUsername(name) {
+  return String(name || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+}
+
 export default function CreateAccount() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [formData, setFormData] = useState({
     fullName: '',
-    email: '',
+    username: '',
     phone: '',
     password: '',
   });
@@ -18,8 +27,8 @@ export default function CreateAccount() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [checking, setChecking] = useState(true);
   const [alreadyLoggedIn, setAlreadyLoggedIn] = useState(false);
+  const [usernameEdited, setUsernameEdited] = useState(false);
 
-  // If they landed here via redirect and are logged in, offer to continue or start fresh
   useEffect(() => {
     const loggedIn = isLoggedIn('student') && getSession('student');
     setAlreadyLoggedIn(loggedIn);
@@ -28,17 +37,52 @@ export default function CreateAccount() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Auto-suggest username from fullName, unless user typed their own
+    if (name === 'fullName' && !usernameEdited) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: value,
+        username: slugifyUsername(value),
+      }));
+      return;
+    }
+
+    if (name === 'username') {
+      setUsernameEdited(true);
+      // strip anything that isn't a-z 0-9 -
+      const cleaned = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      setFormData((prev) => ({ ...prev, username: cleaned }));
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const username = slugifyUsername(formData.username);
+    if (username.length < 3) {
+      setError('Username must be at least 3 characters.');
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Force a clean slate before registering a new account
       logoutUser('student');
-      await registerUser({ ...formData, role: 'student' });
+      await registerUser({
+        fullName: formData.fullName.trim(),
+        username,
+        phone: formData.phone.trim(),
+        password: formData.password,
+        role: 'student',
+      });
       navigate('/application');
     } catch (submitError) {
       setError(submitError.message || 'Could not create your account.');
@@ -49,7 +93,8 @@ export default function CreateAccount() {
   const handleStartFresh = () => {
     logoutUser('student');
     setAlreadyLoggedIn(false);
-    setFormData({ fullName: '', email: '', phone: '', password: '' });
+    setFormData({ fullName: '', username: '', phone: '', password: '' });
+    setUsernameEdited(false);
   };
 
   const handleContinueExisting = () => {
@@ -67,13 +112,12 @@ export default function CreateAccount() {
     );
   }
 
-  // ─── Already logged in — let them choose ───
+  // ─── Already logged in ───
   if (alreadyLoggedIn) {
     const session = getSession('student') || {};
     return (
       <div className="min-h-screen flex flex-col bg-[#F5F9FF]">
         <Navbar />
-
         <main className="flex-1 flex items-center justify-center py-12 px-4">
           <div className="w-full max-w-[520px]">
             <div className="bg-white rounded-3xl border border-black/10 p-8 shadow-sm text-center">
@@ -85,11 +129,11 @@ export default function CreateAccount() {
                 You're already signed in
               </h1>
               <p className="text-sm text-black/50 font-ebrima mb-6">
-                {session.fullName || session.email ? (
+                {session.fullName || session.username ? (
                   <>
                     Signed in as{' '}
                     <span className="text-black/80 font-semibold">
-                      {session.fullName || session.email}
+                      {session.fullName || session.username}
                     </span>
                     . Continue to your application or start a new one.
                   </>
@@ -117,13 +161,11 @@ export default function CreateAccount() {
             </div>
           </div>
         </main>
-
         <Footer />
       </div>
     );
   }
 
-  // ─── Normal register form ───
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F9FF]">
       <Navbar />
@@ -145,7 +187,6 @@ export default function CreateAccount() {
             </div>
           </div>
 
-          {/* Header */}
           <div className="mb-6">
             <h1 className="text-[30px] font-bold text-black font-ebrima leading-tight">
               Create your account
@@ -156,7 +197,10 @@ export default function CreateAccount() {
           </div>
 
           {error && (
-            <p className="mb-4 text-sm text-red-600" role="alert">
+            <p
+              className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700"
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -172,6 +216,7 @@ export default function CreateAccount() {
                 value={formData.fullName}
                 onChange={handleChange}
                 placeholder="John Doe"
+                autoComplete="name"
                 className="w-full h-14 px-4 bg-white rounded-2xl border border-black/30 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base"
                 required
               />
@@ -179,17 +224,25 @@ export default function CreateAccount() {
 
             <div>
               <label className="block text-sm text-black/80 font-ebrima mb-2">
-                Email Address
+                Username
               </label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full h-14 px-4 bg-white rounded-2xl border border-black/30 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base"
+                placeholder="john-doe"
+                autoComplete="username"
+                spellCheck={false}
+                className="w-full h-14 px-4 bg-white rounded-2xl border border-black/30 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base font-mono"
                 required
+                minLength={3}
+                maxLength={40}
               />
+              <p className="text-xs text-black/40 mt-1.5 font-ebrima">
+                This is what you'll use to sign in. Letters, numbers, and
+                dashes only.
+              </p>
             </div>
 
             <div>
@@ -202,6 +255,7 @@ export default function CreateAccount() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+234 801 234 5678"
+                autoComplete="tel"
                 className="w-full h-14 px-4 bg-white rounded-2xl border border-black/30 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base"
                 required
               />
@@ -217,6 +271,7 @@ export default function CreateAccount() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
+                autoComplete="new-password"
                 className="w-full h-14 px-4 bg-white rounded-2xl border border-black/30 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base"
                 required
                 minLength={6}

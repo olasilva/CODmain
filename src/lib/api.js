@@ -191,7 +191,10 @@ export async function registerUser(user) {
     localStorage.setItem(`cod-${role}-token`, data.token);
     localStorage.setItem(`cod-${role}-session`, JSON.stringify(data.user));
     localStorage.setItem("cod-active-role", role);
-    console.log(`✅ Registered and logged in as ${role}:`, data.user.email);
+    console.log(
+      `✅ Registered and logged in as ${role}:`,
+      data.user.username || data.user.fullName || data.user.email
+    );
   }
 
   return data;
@@ -208,7 +211,10 @@ export async function loginUser(credentials) {
     localStorage.setItem(`cod-${role}-token`, data.token);
     localStorage.setItem(`cod-${role}-session`, JSON.stringify(data.user));
     localStorage.setItem("cod-active-role", role);
-    console.log(`✅ Logged in as ${role}:`, data.user.email);
+    console.log(
+      `✅ Logged in as ${role}:`,
+      data.user.username || data.user.email
+    );
   }
 
   return data;

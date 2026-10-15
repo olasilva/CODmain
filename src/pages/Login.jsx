@@ -21,24 +21,25 @@ export default function Login() {
   const [selectedRole, setSelectedRole] = useState(
     roleFromQuery === 'staff' ? 'staff' : 'student'
   );
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ identifier: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [admissionNotice, setAdmissionNotice] = useState(null);
 
   React.useEffect(() => {
-    if (location.state?.email) {
-      setFormData((current) => ({ ...current, email: location.state.email }));
+    // If we were redirected here with a prefilled identifier
+    if (location.state?.identifier) {
+      setFormData((current) => ({ ...current, identifier: location.state.identifier }));
+    } else if (location.state?.email) {
+      setFormData((current) => ({ ...current, identifier: location.state.email }));
     }
   }, [location.state]);
 
-  // Read and validate the Google client ID
   const googleClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
   const isClientIdValid =
     googleClientId.length > 30 &&
     googleClientId.endsWith('.apps.googleusercontent.com');
 
-  // Debug output — remove this once OAuth works
   React.useEffect(() => {
     console.log('🔵 [Login] Client ID value:', googleClientId || '(EMPTY)');
     console.log('🔵 [Login] Client ID length:', googleClientId.length);
@@ -180,11 +181,11 @@ export default function Login() {
       admissionStatusUnavailable && paymentHistoryUnavailable && feesUnavailable
         ? {
             type: 'unverified',
-            email: user.email || user.guardian_email || formData.email,
+            identifier: user.username || user.email || formData.identifier,
           }
         : {
             type: status === 'rejected' ? 'rejected' : 'pending',
-            email: user.email || user.guardian_email || formData.email,
+            identifier: user.username || user.email || formData.identifier,
           }
     );
     setIsSubmitting(false);
@@ -193,9 +194,23 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const identifier = formData.identifier.trim();
+    if (!identifier) {
+      setError('Please enter your username or email.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const session = await loginUser({ ...formData, role: selectedRole });
+      // Send as both `identifier` (new) and `email` (legacy) so the
+      // backend can accept either without breaking existing clients.
+      const session = await loginUser({
+        identifier,
+        email: identifier,       // legacy fallback
+        password: formData.password,
+        role: selectedRole,
+      });
       await finishLogin(session);
     } catch (loginError) {
       setError(loginError.message || 'Login failed');
@@ -280,18 +295,25 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm text-black/80 font-ebrima mb-2">
-                Email Address
+                {selectedRole === 'student' ? 'Username or Email' : 'Email Address'}
               </label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type={selectedRole === 'student' ? 'text' : 'email'}
+                name="identifier"
+                value={formData.identifier}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder={
+                  selectedRole === 'student'
+                    ? 'your-username or you@example.com'
+                    : 'you@example.com'
+                }
+                autoComplete="username"
+                spellCheck={false}
                 className="w-full h-14 px-[17px] bg-white rounded-2xl border border-black/60 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base"
                 required
               />
             </div>
+
             <div>
               <label className="block text-sm text-black/80 font-ebrima mb-2">
                 Password
@@ -302,10 +324,12 @@ export default function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
+                autoComplete="current-password"
                 className="w-full h-14 px-[17px] bg-white rounded-2xl border border-black/60 focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 outline-none transition text-base"
                 required
               />
             </div>
+
             <div className="flex justify-end">
               <Link
                 to="/forgot-password"
@@ -314,6 +338,7 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -323,31 +348,35 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-black/15" />
-            <span className="text-sm text-black/35 whitespace-nowrap">Or</span>
-            <div className="flex-1 h-px bg-black/15" />
-          </div>
+          {selectedRole === 'staff' && (
+            <>
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-black/15" />
+                <span className="text-sm text-black/35 whitespace-nowrap">Or</span>
+                <div className="flex-1 h-px bg-black/15" />
+              </div>
 
-          {isClientIdValid ? (
-            <div className="w-full flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleError}
-                useOneTap={false}
-                theme="outline"
-                size="large"
-                shape="pill"
-                text="signin_with"
-                width="100%"
-              />
-            </div>
-          ) : (
-            <div className="w-full p-3 text-center text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
-              {googleClientId
-                ? 'Google Client ID is malformed. Check VITE_GOOGLE_CLIENT_ID in .env'
-                : 'Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to .env and restart the dev server.'}
-            </div>
+              {isClientIdValid ? (
+                <div className="w-full flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    useOneTap={false}
+                    theme="outline"
+                    size="large"
+                    shape="pill"
+                    text="signin_with"
+                    width="100%"
+                  />
+                </div>
+              ) : (
+                <div className="w-full p-3 text-center text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+                  {googleClientId
+                    ? 'Google Client ID is malformed. Check VITE_GOOGLE_CLIENT_ID in .env'
+                    : 'Google Sign-In is not configured. Add VITE_GOOGLE_CLIENT_ID to .env and restart the dev server.'}
+                </div>
+              )}
+            </>
           )}
 
           <div className="mt-6 pt-6 border-t border-black/15">
@@ -368,16 +397,31 @@ export default function Login() {
         </div>
       </main>
       <Footer />
+
       {admissionNotice && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4" role="presentation">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4"
+          role="presentation"
+        >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="admission-notice-title"
             className="w-full max-w-md rounded-2xl bg-white p-7 shadow-2xl"
           >
-            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${admissionNotice.type === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-              <i className={`bx ${admissionNotice.type === 'approved' ? 'bx-check' : 'bx-time-five'} text-2xl`} aria-hidden="true" />
+            <div
+              className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full ${
+                admissionNotice.type === 'approved'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
+              }`}
+            >
+              <i
+                className={`bx ${
+                  admissionNotice.type === 'approved' ? 'bx-check' : 'bx-time-five'
+                } text-2xl`}
+                aria-hidden="true"
+              />
             </div>
             <h2 id="admission-notice-title" className="text-xl font-bold text-[#0F4082]">
               {admissionNotice.type === 'approved'
@@ -395,11 +439,11 @@ export default function Login() {
                 ? 'Please contact the school for more information about your application.'
                 : admissionNotice.type === 'unverified'
                 ? 'We could not verify your admission status right now. Please try signing in again shortly.'
-                : 'This account still has a pending admission. Make sure you signed in with the same email used for the approved payment. If this is the correct account, ask the admin to approve its admission.'}
+                : 'This account still has a pending admission. If you paid by bank transfer, ask the admin to approve it from the Payments page.'}
             </p>
-            {admissionNotice.type !== 'approved' && admissionNotice.email && (
+            {admissionNotice.type !== 'approved' && admissionNotice.identifier && (
               <p className="mt-3 break-all text-xs text-black/45">
-                Signed in as {admissionNotice.email}
+                Signed in as {admissionNotice.identifier}
               </p>
             )}
             {admissionNotice.type !== 'approved' && (
