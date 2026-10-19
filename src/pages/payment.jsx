@@ -1,10 +1,15 @@
 // src/pages/Payment.jsx
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { ArrowLeftIcon } from '../components/Icons';
 import { PRICING } from '../data/pricing';
+import {
+  FEE_SESSION,
+  SCHOOL_ACCOUNT,
+  getSchoolFeeSchedule,
+} from '../data/schoolFees';
 import { isLoggedIn, getSession, submitBankTransfer } from '../lib/api';
 
 export default function Payment() {
@@ -42,24 +47,36 @@ export default function Payment() {
     setChecking(false);
   }, [navigate, course, trackName, formData, applicationId]);
 
-  // Get pricing for the selected course/track
+  // ─── Class-based school fee schedule (First Term 2026/2027) ───
+  const schedule = getSchoolFeeSchedule(
+    formData?.regularClass,
+    formData?.class,
+    formData?.classApplied,
+    formData?.gradeLevel,
+    trackName
+  );
+  const hasSchedule = Boolean(schedule);
+
+  // Legacy campus/plan pricing (used when no class schedule matches)
   const pricing = PRICING[course]?.[trackName] || null;
   const monthlyFee = pricing?.monthly || 0;
   const termlyFee = pricing?.termly || 0;
   const dailyFee = pricing?.daily || 0;
 
-  const hasMonthly = monthlyFee > 0;
-  const hasTermly = termlyFee > 0;
-  const hasDaily = dailyFee > 0;
+  const hasMonthly = !hasSchedule && monthlyFee > 0;
+  const hasTermly = !hasSchedule && termlyFee > 0;
+  const hasDaily = !hasSchedule && dailyFee > 0;
 
   const [selectedPlan, setSelectedPlan] = useState(() => {
-    if (hasTermly) return 'termly';
-    if (hasMonthly) return 'monthly';
-    if (hasDaily) return 'daily';
+    if (hasSchedule) return 'termly';
+    if (termlyFee > 0) return 'termly';
+    if (monthlyFee > 0) return 'monthly';
+    if (dailyFee > 0) return 'daily';
     return 'monthly';
   });
 
   const getAmount = () => {
+    if (hasSchedule) return schedule.total;
     switch (selectedPlan) {
       case 'monthly':
         return monthlyFee;
@@ -73,20 +90,21 @@ export default function Payment() {
   };
 
   const amountToPay = getAmount();
+  const naira = (n) => `₦${Number(n).toLocaleString('en-NG')}`;
+
+  const contactEmail =
+    formData?.guardianEmail ||
+    formData?.email ||
+    contextEmail ||
+    session?.email ||
+    session?.user?.email ||
+    '';
 
   const handleTransferSubmitted = async () => {
     if (submittingTransfer || amountToPay <= 0) return;
 
     setSubmittingTransfer(true);
     setTransferError('');
-
-    const contactEmail =
-      formData?.guardianEmail ||
-      formData?.email ||
-      contextEmail ||
-      session?.email ||
-      session?.user?.email ||
-      '';
 
     try {
       await submitBankTransfer({
@@ -102,17 +120,10 @@ export default function Payment() {
         payerPhone: formData?.guardianPhone || formData?.phone || '',
       });
 
-      // Success — go to login so the student can sign in and see status
-      navigate('/login', {
-        state: { email: contactEmail },
-      });
+      navigate('/login', { state: { email: contactEmail } });
     } catch (error) {
       const msg = (error?.message || '').toLowerCase();
 
-      // ─── Special case: admission is already approved ───
-      // The student has already paid. Instead of showing an error,
-      // send them to login with a flag so they see a success banner
-      // and can access their dashboard where the payment appears.
       if (msg.includes('already approved')) {
         setSubmittingTransfer(false);
         navigate('/login?approved=true', {
@@ -167,7 +178,6 @@ export default function Payment() {
             </p>
           </div>
 
-          {/* Back link */}
           <Link
             to="/admission/course-selection"
             state={{ formData, trackName, applicationId }}
@@ -193,6 +203,9 @@ export default function Payment() {
               <div className="space-y-2.5">
                 <SummaryRow icon="bx-map-pin" label="Campus" value={course} />
                 <SummaryRow icon="bx-calendar-check" label="Plan" value={trackName} />
+                {hasSchedule && (
+                  <SummaryRow icon="bx-group" label="Class" value={schedule.label} />
+                )}
                 {pricing?.description && (
                   <SummaryRow icon="bx-time" label="Schedule" value={pricing.description} />
                 )}
@@ -202,7 +215,7 @@ export default function Payment() {
                 <SummaryRow
                   icon="bx-envelope"
                   label="Contact email"
-                  value={formData?.guardianEmail || formData?.email || contextEmail || session?.email || session?.user?.email || '—'}
+                  value={contactEmail || '—'}
                 />
                 {(formData?.guardianPhone || formData?.phone || session?.phone) && (
                   <SummaryRow
@@ -211,7 +224,7 @@ export default function Payment() {
                     value={formData?.guardianPhone || formData?.phone || session?.phone}
                   />
                 )}
-                {formData?.regularClass && (
+                {!hasSchedule && formData?.regularClass && (
                   <SummaryRow icon="bx-group" label="Class" value={formData.regularClass} />
                 )}
                 {formData?.instrument && (
@@ -227,10 +240,43 @@ export default function Payment() {
                   <i className="bx bx-wallet text-base" aria-hidden="true" />
                 </span>
                 <h2 className="text-[#1A73E8] font-bold font-ebrima">
-                  Choose Payment Plan
+                  {hasSchedule ? 'School Fee Schedule' : 'Choose Payment Plan'}
                 </h2>
               </div>
               <div className="h-px bg-black/10 mb-5" />
+
+              {hasSchedule && (
+                <div className="mb-5">
+                  <p className="text-xs uppercase tracking-wider font-bold text-black/40 font-ebrima mb-3">
+                    {schedule.label} · {FEE_SESSION}
+                  </p>
+                  <div className="rounded-xl border border-black/10 overflow-hidden">
+                    <div className="grid grid-cols-[2.5rem_1fr_auto] bg-[#FF2E96] text-white text-xs font-bold font-ebrima uppercase tracking-wide">
+                      <span className="px-3 py-2">S/N</span>
+                      <span className="px-3 py-2">Item</span>
+                      <span className="px-3 py-2 text-right">Amount (₦)</span>
+                    </div>
+                    {schedule.items.map((item, i) => (
+                      <div
+                        key={item.key}
+                        className={`grid grid-cols-[2.5rem_1fr_auto] text-sm font-ebrima ${
+                          i % 2 ? 'bg-[#F5F9FF]' : 'bg-white'
+                        }`}
+                      >
+                        <span className="px-3 py-2 text-black/50">{i + 1}</span>
+                        <span className="px-3 py-2 text-black/80">{item.label}</span>
+                        <span
+                          className={`px-3 py-2 text-right tabular-nums ${
+                            item.amount ? 'font-bold text-black' : 'text-black/40'
+                          }`}
+                        >
+                          {item.amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {(hasMonthly || hasTermly || hasDaily) && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
@@ -272,10 +318,10 @@ export default function Payment() {
                 </div>
               )}
 
-              {!hasMonthly && !hasTermly && !hasDaily && (
+              {!hasSchedule && !hasMonthly && !hasTermly && !hasDaily && (
                 <div className="text-center py-4 mb-5">
                   <div className="text-2xl font-bold text-[#1A73E8] font-ebrima">
-                    ₦{amountToPay.toLocaleString()}
+                    {naira(amountToPay)}
                   </div>
                   <div className="text-sm text-black/50 font-ebrima mt-1">Fee</div>
                 </div>
@@ -284,16 +330,17 @@ export default function Payment() {
               <div className="rounded-2xl bg-gradient-to-r from-[#F5F9FF] to-[#FFF5FA] border border-[#1A73E8]/15 p-5 flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-wider font-bold text-black/40 font-ebrima mb-1">
-                    Total Amount
+                    Total Fee
                   </p>
                   <p className="text-sm text-black/50 font-ebrima">
-                    {selectedPlan === 'monthly' && 'Monthly payment'}
-                    {selectedPlan === 'termly' && 'Termly payment (3 months)'}
-                    {selectedPlan === 'daily' && 'Per session'}
+                    {hasSchedule && 'First term, 2026/2027 session'}
+                    {!hasSchedule && selectedPlan === 'monthly' && 'Monthly payment'}
+                    {!hasSchedule && selectedPlan === 'termly' && 'Termly payment (3 months)'}
+                    {!hasSchedule && selectedPlan === 'daily' && 'Per session'}
                   </p>
                 </div>
                 <span className="text-3xl font-bold text-[#0F4082] font-ebrima">
-                  ₦{amountToPay.toLocaleString()}
+                  {naira(amountToPay)}
                 </span>
               </div>
             </section>
@@ -315,10 +362,10 @@ export default function Payment() {
               </p>
 
               <dl className="divide-y divide-black/10 rounded-xl border border-black/10 px-4">
-                <BankDetail label="Bank" value="Zenith Bank" />
-                <BankDetail label="Account number" value="1219258176" />
-                <BankDetail label="Account name" value="Clan of David Music" />
-                <BankDetail label="Amount to pay" value={`₦${amountToPay.toLocaleString()}`} />
+                <BankDetail label="Bank" value={SCHOOL_ACCOUNT.bank} />
+                <BankDetail label="Account number" value={SCHOOL_ACCOUNT.number} copyable />
+                <BankDetail label="Account name" value={SCHOOL_ACCOUNT.name} />
+                <BankDetail label="Amount to pay" value={naira(amountToPay)} />
               </dl>
 
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 mt-5 flex items-start gap-3">
@@ -327,6 +374,10 @@ export default function Payment() {
                   Your admission remains pending while the transfer is verified. The school admin will approve your admission and send a confirmation to the contact email above. Student access is available after approval.
                 </p>
               </div>
+
+              <p className="mt-4 text-xs text-black/45 font-ebrima">
+                All payments should be made in time for a smooth school activities.
+              </p>
             </section>
 
             {transferError && (
@@ -436,11 +487,34 @@ function PlanCard({ label, price, sub, selected, onClick, icon, savings }) {
   );
 }
 
-function BankDetail({ label, value }) {
+function BankDetail({ label, value, copyable }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+  };
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
       <dt className="text-sm text-black/55 font-ebrima">{label}</dt>
-      <dd className="text-sm font-bold text-black font-ebrima text-right">{value}</dd>
+      <dd className="text-sm font-bold text-black font-ebrima text-right flex items-center gap-2">
+        {value}
+        {copyable && (
+          <button
+            type="button"
+            onClick={copy}
+            className="text-xs font-semibold text-[#1A73E8] hover:text-[#0F4082] transition-colors"
+          >
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        )}
+      </dd>
     </div>
   );
 }
