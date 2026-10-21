@@ -1,21 +1,50 @@
 // src/pages/admin/AdminReports.jsx
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import AdminSidebar from './components/AdminSidebar';
 import AdminHeader from './components/AdminHeader';
+import SessionTermBar from './components/SessionTermBar';
 import useFetch from '../../lib/useFetch';
-import { getAdminReports } from '../../lib/api';
+import { getAdminReports, getAdminSessions } from '../../lib/api';
 
 export default function AdminReports() {
-  const { data, loading, error } = useFetch(getAdminReports, [], {
-    initialData: null,
-  });
+  const [sessionId, setSessionId] = useState(null);
+  const [term, setTerm] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // ── Load sessions/terms once ──
+  const { data: sessionsData, loading: sessionsLoading } = useFetch(
+    getAdminSessions,
+    [],
+    { initialData: null }
+  );
+  const sessions = sessionsData?.sessions || [];
+
+  // ── Auto-select the current session/term on first load ──
+  useEffect(() => {
+    if (sessionId || !sessions.length) return;
+    const currentSession = sessions.find((s) => s.is_current) || sessions[0];
+    if (!currentSession) return;
+    const currentTerm =
+      currentSession.terms?.find((t) => t.is_current)?.term_number ??
+      currentSession.terms?.[0]?.term_number ??
+      1;
+    setSessionId(currentSession.id);
+    setTerm(currentTerm);
+  }, [sessions, sessionId]);
+
+  // ── Reports, scoped to session/term ──
+  const { data, loading, error } = useFetch(
+    () => getAdminReports({ sessionId, term }),
+    [sessionId, term, refreshKey],
+    { initialData: null }
+  );
 
   const stats = data?.stats || {};
   const enrollmentTrend = data?.enrollmentTrend || [];
   const feeCollection = data?.feeCollection || [];
   const classDistribution = data?.classDistribution || [];
 
-  // Derived axis maxes
+  // ── Derived axis maxes ──
   const { maxEnrollment, enrollAxisLabels } = useMemo(() => {
     const values = enrollmentTrend.map((d) => Number(d.value || 0));
     const max = values.length ? Math.max(...values, 1) : 0;
@@ -35,7 +64,6 @@ export default function AdminReports() {
     return { maxFee: max, feeAxisLabels: labels };
   }, [feeCollection]);
 
-  // Stats cards built from backend
   const statCards = [
     {
       label: 'Total Students',
@@ -90,6 +118,20 @@ export default function AdminReports() {
               Export Report
             </button>
           </div>
+
+          {/* Session / Term selector + promotion */}
+          {!sessionsLoading && sessions.length > 0 && (
+            <SessionTermBar
+              sessions={sessions}
+              sessionId={sessionId}
+              term={term}
+              onChange={({ sessionId: s, term: t, refreshKey: k }) => {
+                if (s) setSessionId(s);
+                if (t) setTerm(t);
+                if (k) setRefreshKey(k);
+              }}
+            />
+          )}
 
           {/* Error */}
           {error && (

@@ -40,6 +40,13 @@ const make = (key, label, v, uniformNote) => {
 const FRI = 'Friday Wears and Cardigan';
 
 export const SCHOOL_FEES = [
+  // Pre School is a flat 90k summer lump sum — no itemised breakdown.
+  {
+    key: 'pre-school',
+    label: 'Pre School',
+    items: [{ key: 'summer', label: 'Summer Fee', amount: 90000 }],
+    total: 90000,
+  },
   make('pre-nursery', 'Pre Nursery', { tuition: 55000, uniform: 49000, books: 15000, pta: 2000, exam: 1500 }, FRI),
   make('discovery', 'Discovery', { tuition: 55000, uniform: 49000, books: 5000, pta: 2000, exam: 1500 }, FRI),
   make('nursery-one', 'Nursery One', { tuition: 60000, uniform: 51000, books: 25000, pta: 2000, exam: 1500 }, FRI),

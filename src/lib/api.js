@@ -638,7 +638,7 @@ export async function resetStaffPassword(staffId, options = {}) {
   });
 }
 
-// ============ ADMIN — PAYMENTS & REPORTS ============
+// ============ ADMIN — PAYMENTS ============
 
 export async function getAdminPayments(params = {}) {
   const qs = new URLSearchParams(params).toString();
@@ -652,8 +652,48 @@ export async function approveBankTransfer(paymentId, approvalDetails = {}) {
   });
 }
 
-export async function getAdminReports() {
-  return request("/admin/reports");
+// ============ ADMIN — ACADEMIC SESSIONS & TERMS ============
+
+export async function getAdminSessions() {
+  return request("/admin/sessions");
+}
+
+export async function createAcademicSession({ name, startDate, endDate, terms }) {
+  return request("/admin/sessions", {
+    method: "POST",
+    body: JSON.stringify({ name, startDate, endDate, terms }),
+  });
+}
+
+export async function setCurrentTerm(sessionId, termNumber) {
+  return request("/admin/terms/current", {
+    method: "POST",
+    body: JSON.stringify({ sessionId, termNumber }),
+  });
+}
+
+// ============ ADMIN — PROMOTION (Option A: cohort-wide) ============
+
+export async function getPromotionPreview({ sessionId, term }) {
+  const qs = new URLSearchParams({ sessionId, term: String(term) }).toString();
+  return request(`/admin/promotions/preview?${qs}`);
+}
+
+export async function promoteCohort({ sessionId, term }) {
+  return request(
+    `/admin/sessions/${encodeURIComponent(sessionId)}/terms/${encodeURIComponent(term)}/promote`,
+    { method: "POST" }
+  );
+}
+
+// ============ ADMIN — REPORTS (session/term scoped) ============
+
+export async function getAdminReports({ sessionId, term } = {}) {
+  const params = new URLSearchParams();
+  if (sessionId) params.set("sessionId", sessionId);
+  if (term) params.set("term", String(term));
+  const qs = params.toString();
+  return request(`/admin/reports${qs ? `?${qs}` : ""}`);
 }
 
 // ============ ADMIN — REPORT CARDS ============
@@ -1139,9 +1179,20 @@ export default {
   getStaffPassword,
   resetStaffPassword,
 
-  // Admin — payments & reports
+  // Admin — payments
   getAdminPayments,
   approveBankTransfer,
+
+  // Admin — academic sessions & terms
+  getAdminSessions,
+  createAcademicSession,
+  setCurrentTerm,
+
+  // Admin — promotion (Option A)
+  getPromotionPreview,
+  promoteCohort,
+
+  // Admin — reports (session/term scoped)
   getAdminReports,
 
   // Admin — report cards
