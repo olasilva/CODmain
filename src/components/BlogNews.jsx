@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getNews } from '../lib/api'
+import blogBackground from '../assets/IMG-20260709-WA0054.jpg'
 
 export default function BlogNews() {
   const [posts, setPosts] = useState([])
@@ -31,8 +32,15 @@ export default function BlogNews() {
   }, [])
 
   return (
-    <section className="bg-cod-bg py-16 md:py-20">
-      <div className="max-w-7xl mx-auto px-5 md:px-8">
+    <section className="relative isolate overflow-hidden py-16 md:py-20">
+      <img
+        src={blogBackground}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
+      />
+      <div className="absolute inset-0 -z-10 bg-cod-bg/90" />
+      <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <h2 className="font-display font-bold text-2xl md:text-3xl text-cod-blue-dark text-center mb-12">
           Latest Blog &amp; News
         </h2>

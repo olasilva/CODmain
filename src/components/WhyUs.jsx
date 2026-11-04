@@ -1,4 +1,6 @@
 // src/components/WhyUs.jsx
+import learningBackground from '../assets/IMG-20260710-WA0007.jpg'
+
 const features = [
   {
     title: 'Expert Tutors',
@@ -25,8 +27,15 @@ const features = [
 
 export default function WhyUs() {
   return (
-    <section className="bg-cod-lavender py-16 md:py-20 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-5 md:px-8">
+    <section className="relative isolate overflow-hidden py-16 md:py-20">
+      <img
+        src={learningBackground}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
+      />
+      <div className="absolute inset-0 -z-10 bg-cod-lavender/90" />
+      <div className="relative mx-auto max-w-7xl px-5 md:px-8">
         <div className="grid md:grid-cols-4 gap-6">
           {/* ─── Headline card — floating + gradient shimmer ─── */}
           <div className="relative md:col-span-1">
