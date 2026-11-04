@@ -1,7 +1,5 @@
 // src/pages/admin/AdminCourses.jsx
 import React, { useMemo, useState } from 'react';
-import AdminSidebar from './components/AdminSidebar';
-import AdminHeader from './components/AdminHeader';
 import useFetch from '../../lib/useFetch';
 import { getAdminClasses } from '../../lib/api';
 
@@ -54,12 +52,7 @@ export default function AdminCourses() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] flex">
-      <AdminSidebar activeItem="Courses" />
-      <div className="flex-1 ml-[300px] min-w-0">
-        <AdminHeader />
-
-        <div className="w-full max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="w-full max-w-[1140px] mx-auto py-2 sm:py-0">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <div>
@@ -294,8 +287,6 @@ export default function AdminCourses() {
               </>
             )}
           </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -53,6 +53,11 @@ should return `{ transactionId, paidAt }`. The current local payment adapter is
 only a development stub and must be replaced by server-side gateway/webhook
 verification before accepting real money.
 
+Public news posts include anonymous like, comment, and share controls. These
+interactions currently persist in the visitor's browser through local storage;
+connect them to server-side news engagement endpoints when shared counts and
+comments across visitors are required.
+
 For manual bank transfers, the frontend also expects `POST /payments/bank-transfer`
 to save a pending record containing `applicationId`, `amount`, `plan`, `course`,
 `trackName`, `method`, `studentName`, `payerEmail`, `payerName`, and `payerPhone`.

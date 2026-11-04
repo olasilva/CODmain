@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import AdminSidebar from './components/AdminSidebar';
-import AdminHeader from './components/AdminHeader';
 import {
   createAcademicSession,
   getAdminSessions,
@@ -86,50 +84,44 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] flex">
-      <AdminSidebar activeItem="Settings" />
-      <div className="flex-1 ml-[300px]">
-        <AdminHeader />
-        <div className="max-w-[1140px] mx-auto px-8 py-6">
-          <h1 className="text-[36px] font-bold text-black font-ebrima leading-[54px] mb-6">
-            Settings
-          </h1>
-          <div className="flex gap-1 bg-white rounded-2xl border border-black/10 p-1.5 mb-8 w-fit">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition ${
-                  activeTab === tab
-                    ? 'bg-[#1A73E8] text-white'
-                    : 'text-gray-500 hover:bg-gray-50'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+    <div className="w-full max-w-[1140px] mx-auto py-2 sm:py-0">
+      <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-black font-ebrima leading-tight mb-6">
+        Settings
+      </h1>
+      <div className="flex max-w-full gap-1 overflow-x-auto bg-white rounded-2xl border border-black/10 p-1.5 mb-8">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`shrink-0 px-4 sm:px-5 py-2.5 rounded-xl text-sm font-bold transition ${
+              activeTab === tab
+                ? 'bg-[#1A73E8] text-white'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+      <div className="bg-white rounded-2xl border border-black/10 p-4 sm:p-8 max-w-2xl">
+        {activeTab === 'Academic Year' ? (
+          <AcademicSettings
+            form={form}
+            updateField={updateField}
+            onSubmit={handleCreateSession}
+            sessions={sessions}
+            loading={loadingSessions}
+            error={sessionError}
+            message={message}
+            onSetCurrentTerm={handleSetCurrentTerm}
+          />
+        ) : activeTab === 'School Info' ? (
+          <SchoolInfo />
+        ) : (
+          <div className="text-center py-12 text-gray-500">
+            Content coming soon...
           </div>
-          <div className="bg-white rounded-2xl border border-black/10 p-8 max-w-2xl">
-            {activeTab === 'Academic Year' ? (
-              <AcademicSettings
-                form={form}
-                updateField={updateField}
-                onSubmit={handleCreateSession}
-                sessions={sessions}
-                loading={loadingSessions}
-                error={sessionError}
-                message={message}
-                onSetCurrentTerm={handleSetCurrentTerm}
-              />
-            ) : activeTab === 'School Info' ? (
-              <SchoolInfo />
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Content coming soon...
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

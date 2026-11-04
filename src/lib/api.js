@@ -2,6 +2,7 @@
 import { API_URL } from "./config";
 
 const STORAGE_KEY = "cod-academy-store";
+const NEWS_ENGAGEMENT_KEY = "cod-news-engagement";
 
 // ============ STORAGE HELPERS ============
 
@@ -27,6 +28,18 @@ function readStore() {
 
 function writeStore(store) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+
+function readNewsEngagement() {
+  try {
+    return JSON.parse(localStorage.getItem(NEWS_ENGAGEMENT_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function writeNewsEngagement(engagement) {
+  localStorage.setItem(NEWS_ENGAGEMENT_KEY, JSON.stringify(engagement));
 }
 
 // ============ ROLE HELPERS ============
@@ -432,6 +445,74 @@ export async function getNews() {
 
 export async function getNewsPost(slug) {
   return request(`/news/${slug}`);
+}
+
+export function getNewsEngagement(slug, post = {}) {
+  const allEngagement = readNewsEngagement();
+  const saved = allEngagement[slug] || {};
+  const comments = Array.isArray(saved.comments)
+    ? saved.comments
+    : Array.isArray(post.comments)
+      ? post.comments
+      : [];
+
+  return {
+    liked: saved.liked === true,
+    likes: Number(saved.likes ?? post.like_count ?? post.likes ?? 0),
+    shares: Number(saved.shares ?? post.share_count ?? post.shares ?? 0),
+    comments,
+  };
+}
+
+export function toggleNewsLike(slug, post = {}) {
+  const allEngagement = readNewsEngagement();
+  const current = getNewsEngagement(slug, post);
+  const liked = !current.liked;
+  const next = {
+    ...current,
+    liked,
+    likes: Math.max(0, current.likes + (liked ? 1 : -1)),
+  };
+
+  allEngagement[slug] = next;
+  writeNewsEngagement(allEngagement);
+  return next;
+}
+
+export function addNewsComment(slug, comment, post = {}) {
+  const name = String(comment?.name || "").trim();
+  const text = String(comment?.text || "").trim();
+  if (!name || !text) {
+    throw new Error("Please provide your name and a comment.");
+  }
+
+  const allEngagement = readNewsEngagement();
+  const current = getNewsEngagement(slug, post);
+  const next = {
+    ...current,
+    comments: [
+      ...current.comments,
+      {
+        id: id("comment"),
+        name: name.slice(0, 80),
+        text: text.slice(0, 1000),
+        created_at: new Date().toISOString(),
+      },
+    ],
+  };
+
+  allEngagement[slug] = next;
+  writeNewsEngagement(allEngagement);
+  return next;
+}
+
+export function recordNewsShare(slug, post = {}) {
+  const allEngagement = readNewsEngagement();
+  const current = getNewsEngagement(slug, post);
+  const next = { ...current, shares: current.shares + 1 };
+  allEngagement[slug] = next;
+  writeNewsEngagement(allEngagement);
+  return next;
 }
 
 // ============ CONTACT & NEWSLETTER (public) ============
@@ -1127,6 +1208,10 @@ export default {
   // News (public)
   getNews,
   getNewsPost,
+  getNewsEngagement,
+  toggleNewsLike,
+  addNewsComment,
+  recordNewsShare,
 
   // Contact & Newsletter (public)
   submitContactMessage,
