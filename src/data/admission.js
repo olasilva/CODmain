@@ -1,4 +1,4 @@
-// Admission tracks + courses shown on the "Purchase Admission Form" step.
+// Admission tracks + courses shown during enrollment.
 // Edit names/courses here — the selection UI, the summary text, and the
 // "Complete Application" banner all read from this file.
 

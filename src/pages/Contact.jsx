@@ -3,6 +3,7 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { submitContactMessage } from "../lib/api";
+import contactHeroImage from "../assets/IMG-20260710-WA0011.jpg";
 
 // Replace with the academy's real contact details.
 const details = [
@@ -53,24 +54,32 @@ export default function Contact() {
       <Navbar />
 
       {/* ─── Hero ─── */}
-      <section className="bg-cod-hero bg-gradient-to-r from-cod-blue-dark via-cod-blue to-cod-pink">
-        <div className="max-w-5xl mx-auto px-6 lg:px-10 py-20 md:py-24">
-          <p className="text-blue-100/80 text-sm font-medium mb-3">
-            Admissions &amp; enquiries
-          </p>
-          <h1 className="font-serif text-white text-4xl md:text-5xl leading-tight max-w-xl">
-            Let's talk about your child's next step.
-          </h1>
-          <p className="text-blue-100 mt-4 max-w-md text-base leading-relaxed">
-            Questions about admissions, programmes, or booking a visit — our
-            team replies personally, usually within a day.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
-            {disciplines.map((d) => (
-              <span key={d} className="text-blue-50 text-sm border-b border-white/30 pb-0.5">
-                {d}
-              </span>
-            ))}
+      <section className="relative isolate min-h-[370px] overflow-hidden bg-cod-blue-deep">
+        <img
+          src={contactHeroImage}
+          alt="Student performing at Clan of David Art & Music Academy"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-center motion-safe:animate-pulse-slow"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-cod-blue-deep/95 via-cod-blue-dark/75 to-cod-pink/35" />
+        <div className="mx-auto flex min-h-[370px] max-w-5xl items-center px-6 py-20 lg:px-10">
+          <div className="max-w-2xl">
+            <p className="mb-3 text-sm font-medium text-blue-100/90">
+              Admissions &amp; enquiries
+            </p>
+            <h1 className="max-w-xl font-serif text-4xl leading-tight text-white md:text-5xl">
+              Let&apos;s talk about your child&apos;s next step.
+            </h1>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-blue-100">
+              Questions about admissions, programmes, or booking a visit — our
+              team replies personally, usually within a day.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+              {disciplines.map((d) => (
+                <span key={d} className="border-b border-white/30 pb-0.5 text-sm text-blue-50">
+                  {d}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>

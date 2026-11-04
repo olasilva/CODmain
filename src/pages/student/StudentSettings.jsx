@@ -9,10 +9,7 @@ import {
   setSession,
   getSession,
 } from '../../lib/api';
-
-const API_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
-  'http://localhost:5000/api';
+import { API_URL } from '../../lib/config';
 
 export default function StudentSettings() {
   const navigate = useNavigate();

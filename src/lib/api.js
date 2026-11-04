@@ -1,7 +1,5 @@
 // src/lib/api.js
-const API_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
-  "http://localhost:5000/api";
+import { API_URL } from "./config";
 
 const STORAGE_KEY = "cod-academy-store";
 

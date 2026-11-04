@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Logo from "../components/Logo";
 import CountUp from "../components/CountUp";
+import aboutHeroImage from "../assets/IMG-20260710-WA0001.jpg";
 
 const images = import.meta.glob("../assets/*.{png,jpg,jpeg,webp,svg}", {
   eager: true,
@@ -69,29 +70,35 @@ export default function About() {
       <Navbar />
 
       {/* ===== HERO ===== */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-cod-blue-dark via-cod-blue to-cod-pink">
-        <div className="max-w-6xl mx-auto px-6 lg:px-10 py-20 md:py-28 text-center relative z-10">
-          <div className="mb-6 flex justify-center animate-scaleIn">
-            <Logo className="h-16 w-16" />
-          </div>
-          <h1 className="animate-fadeUp text-white text-3xl md:text-5xl font-bold tracking-tight">
-            About Us
-          </h1>
-          <p
-            className="animate-fadeUp text-blue-100 mt-5 max-w-2xl mx-auto text-base md:text-lg leading-relaxed"
-            style={{ animationDelay: "100ms" }}
-          >
-            Clan of David Art and Music Academy exists to raise skilfully
-            educated, creatively inspired young people through disciplined
-            instruction in music and the arts.
-          </p>
-        </div>
-
-        <div className="absolute -top-16 -left-16 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
-        <div
-          className="absolute -bottom-24 -right-10 h-72 w-72 rounded-full bg-cod-pink/20 blur-3xl animate-pulse"
-          style={{ animationDelay: "1s" }}
+      <section className="relative isolate min-h-[390px] overflow-hidden bg-cod-blue-deep">
+        <img
+          src={aboutHeroImage}
+          alt="Students learning together at Clan of David Art & Music Academy"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-center motion-safe:animate-pulse-slow"
         />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-cod-blue-deep/95 via-cod-blue-dark/75 to-cod-pink/35" />
+        <div className="mx-auto flex min-h-[390px] max-w-6xl items-center px-6 py-20 lg:px-10">
+          <div className="max-w-2xl">
+            <div className="mb-6 animate-scaleIn">
+              <Logo className="h-16 w-16" />
+            </div>
+            <h1 className="animate-fadeUp text-3xl font-bold tracking-tight text-white md:text-5xl">
+              About Us
+            </h1>
+            <p
+              className="animate-fadeUp mt-5 max-w-2xl text-base leading-relaxed text-blue-100 md:text-lg"
+              style={{ animationDelay: "100ms" }}
+            >
+              Clan of David Art and Music Academy exists to raise skilfully
+              educated, creatively inspired young people through disciplined
+              instruction in music and the arts.
+            </p>
+            <div className="mt-7 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white backdrop-blur-sm">
+              <i className="bx bx-group text-lg text-cod-pink" aria-hidden="true" />
+              Growing confident, creative young people
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ===== STATS ===== */}

@@ -2,6 +2,7 @@
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.jpg';
 import Stagger from './Stagger';
+import { SCHOOL_HOTLINE } from '../lib/config';
 
 const columns = [
   {
@@ -137,10 +138,10 @@ export default function Footer() {
             reserved.
           </span>
           <a
-            href="tel:+2348128849345"
+            href={`tel:+234${SCHOOL_HOTLINE.slice(1)}`}
             className="hover:text-cod-pink transition-colors"
           >
-            📞 +234 812 884 9345
+            📞 {SCHOOL_HOTLINE}
           </a>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { getNews } from '../lib/api';
+import blogHeroImage from '../assets/IMG-20260709-WA0056.jpg';
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&q=80';
@@ -76,15 +77,31 @@ export default function News() {
     <div className="bg-cod-bg min-h-screen">
       <Navbar />
 
-      {/* Banner */}
-      <section className="relative w-full py-16 md:py-20 bg-cod-blue-deep">
-        <div className="max-w-7xl mx-auto px-5 md:px-8 text-center">
-          <h1 className="font-display font-bold text-white text-3xl md:text-5xl mb-3">
-            News &amp; Blog
-          </h1>
-          <p className="text-white/80 text-sm md:text-base max-w-2xl mx-auto">
-            The latest updates, events, and stories from Clan of David Art and Music Academy.
-          </p>
+      {/* Blog hero */}
+      <section className="relative isolate min-h-[360px] overflow-hidden bg-cod-blue-deep">
+        <img
+          src={blogHeroImage}
+          alt="Student playing an instrument at Clan of David Art & Music Academy"
+          className="absolute inset-0 -z-20 h-full w-full object-cover object-center motion-safe:animate-pulse-slow"
+        />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-cod-blue-deep/95 via-cod-blue-deep/75 to-cod-pink/35" />
+        <div className="mx-auto flex min-h-[360px] max-w-7xl items-center px-5 py-16 md:px-8 md:py-20">
+          <div className="max-w-2xl text-left">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-cod-pink">
+              Stories from our academy
+            </p>
+            <h1 className="font-display text-3xl font-bold text-white md:text-5xl">
+              News &amp; Blog
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 md:text-base">
+              Discover the latest updates, events, and inspiring stories from
+              Clan of David Art and Music Academy.
+            </p>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold text-white backdrop-blur-sm">
+              <i className="bx bx-music text-lg text-cod-pink" aria-hidden="true" />
+              Celebrating every student&apos;s creative journey
+            </div>
+          </div>
         </div>
       </section>
 

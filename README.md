@@ -39,9 +39,12 @@ npm run build      # production build → dist/
 ## Backend integration
 
 The frontend uses `src/lib/api.js` for authentication, admission applications,
-payments, contact messages, and newsletter subscriptions. Without configuration
-it persists demo data in browser storage so every flow works locally. Set
-`VITE_API_URL` in the deployment environment to use a real backend instead.
+payments, contact messages, and newsletter subscriptions. During local
+development it connects to `http://localhost:5000/api`. Set `VITE_API_URL` in
+the deployment environment to the publicly reachable backend API, including
+the `/api` path (for example, `https://api.example.com/api`). If it is omitted
+in production, requests use the same-origin `/api` path and require the host
+to proxy that path to the backend.
 
 The backend should provide JSON endpoints for `POST /auth/register`,
 `POST /auth/login`, `POST /applications`, `POST /payments`, `POST /contact`, and

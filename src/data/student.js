@@ -6,7 +6,7 @@ export const student = {
   name: "Adaeze Okonkwo",
   className: "Basic 5A",
   studentId: "COD/2024/P5/012",
-  session: "2025/2026",
+  session: "2026/2027",
   termLabel: "Term 3, Week 8",
 };
 

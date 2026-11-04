@@ -99,7 +99,7 @@ export default function StudentResults() {
                   Academic Results
                 </h1>
                 <p className="text-sm text-black/55 font-ebrima pt-1">
-                  {studentInfo.name} • {studentInfo.class || 'Student'} • Session {studentInfo.session || '2025/2026'}
+                  {studentInfo.name} • {studentInfo.class || 'Student'} • Session {studentInfo.session || '2026/2027'}
                 </p>
               </div>
               <button className="px-4 py-2 bg-white border border-black/20 rounded-full text-sm font-bold flex items-center gap-2 hover:bg-gray-50 transition">
@@ -127,7 +127,7 @@ export default function StudentResults() {
                   {term}
                 </button>
               ))}
-              <span className="ml-3 text-sm text-black/40 font-ebrima">Academic Session: {studentInfo.session || '2025/2026'}</span>
+              <span className="ml-3 text-sm text-black/40 font-ebrima">Academic Session: {studentInfo.session || '2026/2027'}</span>
             </div>
 
             {error && (

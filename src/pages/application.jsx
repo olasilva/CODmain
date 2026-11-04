@@ -6,10 +6,8 @@ import Footer from '../components/Footer';
 import { DocumentIcon } from '../components/BoxIcons';
 import { COUNTRIES } from '../data/countries';
 import { startAdmission, getSession, isLoggedIn } from '../lib/api';
-
-const API_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
-  'http://localhost:5000/api';
+import { API_URL } from '../lib/config';
+import { ACADEMIC_SESSION } from '../lib/config';
 
 // ─── Programme options ───
 const PROGRAMMES = [
@@ -230,7 +228,7 @@ export default function Application() {
 
       const applicationData = {
         programmeId: form.programme,
-        academicYear: new Date().getFullYear().toString(),
+        academicYear: ACADEMIC_SESSION,
         personalInfo: {
           fullName: form.studentName,
           dateOfBirth: form.dob,
@@ -303,7 +301,7 @@ export default function Application() {
 
           <div className="mb-6">
             <h1 className="text-[30px] sm:text-4xl font-bold text-[#0F4082] font-ebrima leading-tight">
-              Purchase Admission Form
+              Enroll Now
             </h1>
             <p className="text-sm text-black/60 font-ebrima mt-2">
               Step 2 of 4 · Fill in the student's details to purchase your form.

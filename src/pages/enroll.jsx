@@ -43,7 +43,7 @@ export default function Enroll() {
   }, []);
 
   const handleAction = (action) => {
-    if (action === 'purchase') {
+    if (action === 'enroll') {
       navigate('/admission/create-account');
       return;
     }
@@ -134,12 +134,12 @@ export default function Enroll() {
             <div className="w-full flex flex-col gap-4">
               <button
                 type="button"
-                onClick={() => handleAction('purchase')}
+                onClick={() => handleAction('enroll')}
                 style={{ animationDelay: '450ms' }}
                 className="droplet-right w-full h-[56px] bg-gradient-to-r from-[#1A73E8] to-[#FF2E96] hover:opacity-95 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-white font-bold text-lg rounded-full shadow-[4px_4px_12px_rgba(0,0,0,0.20)] flex items-center justify-center gap-2"
               >
                 <i className="bx bx-cart-add text-xl" aria-hidden="true" />
-                Purchase Admission Form
+                Enroll Now
               </button>
 
               <button
@@ -159,7 +159,7 @@ export default function Enroll() {
             >
               New student? Choose{' '}
               <span className="font-semibold text-[#1A73E8]">
-                Purchase Admission Form
+                Enroll Now
               </span>
               . Already have an account? Choose{' '}
               <span className="font-semibold text-[#1A73E8]">

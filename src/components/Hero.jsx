@@ -1,6 +1,29 @@
 // src/components/Hero.jsx
 import { useState, useEffect } from 'react'
 import heroImg from '../assets/IMG-20260709-WA0056.jpg'
+import heroImgTwo from '../assets/IMG-20260710-WA0004.jpg'
+import heroImgThree from '../assets/IMG-20260709-WA0053__1_.jpg'
+import heroImgFour from '../assets/IMG-20260710-WA0008.jpg'
+import { ACADEMIC_SESSION, WHATSAPP_URL } from '../lib/config'
+
+const HERO_IMAGES = [
+  {
+    src: heroImg,
+    alt: 'Young student playing piano at Clan of David Art & Music Academy',
+  },
+  {
+    src: heroImgTwo,
+    alt: 'Students learning music at Clan of David Art & Music Academy',
+  },
+  {
+    src: heroImgThree,
+    alt: 'Students participating in academy activities',
+  },
+  {
+    src: heroImgFour,
+    alt: 'Students building creative confidence at the academy',
+  },
+]
 
 // Typewriter phrases — cycles through these
 const PHRASES = [
@@ -15,6 +38,14 @@ export default function Hero() {
   const [typed, setTyped] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [showCaret, setShowCaret] = useState(true)
+  const [heroIndex, setHeroIndex] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroIndex((index) => (index + 1) % HERO_IMAGES.length)
+    }, 4500)
+    return () => clearInterval(timer)
+  }, [])
 
   // Typewriter loop
   useEffect(() => {
@@ -121,11 +152,27 @@ export default function Hero() {
 
           {/* Tilted image card */}
           <div className="relative animate-float-slow">
-            <img
-              src={heroImg}
-              alt="Young student playing piano at Clan of David Art & Music Academy"
-              className="w-full aspect-[4/5] object-cover rounded-2xl shadow-2xl hover:scale-[1.02] transition-transform duration-500"
-            />
+            <div className="relative">
+              <img
+                src={HERO_IMAGES[heroIndex].src}
+                alt={HERO_IMAGES[heroIndex].alt}
+                className="w-full aspect-[4/5] object-cover rounded-2xl shadow-2xl hover:scale-[1.02] transition-transform duration-500"
+              />
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 rounded-full bg-black/35 px-3 py-2">
+                {HERO_IMAGES.map((image, index) => (
+                  <button
+                    key={image.src}
+                    type="button"
+                    onClick={() => setHeroIndex(index)}
+                    aria-label={`Show academy photo ${index + 1}`}
+                    aria-current={heroIndex === index}
+                    className={`h-2 w-2 rounded-full transition ${
+                      heroIndex === index ? 'bg-white scale-125' : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
 
             {/* Small floating accent card */}
             <div
@@ -140,7 +187,7 @@ export default function Hero() {
                   Now Enrolling
                 </p>
                 <p className="text-sm font-bold text-cod-blue-dark">
-                  2025 / 2026 Session
+                  {ACADEMIC_SESSION} Session
                 </p>
               </div>
             </div>
@@ -150,7 +197,7 @@ export default function Hero() {
 
       {/* WhatsApp floating button */}
       <a
-        href="https://wa.me/2340000000000"
+        href={WHATSAPP_URL}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-[#25D366] shadow-xl flex items-center justify-center hover:scale-110 transition-transform animate-pulse-slow"

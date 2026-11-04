@@ -21,7 +21,7 @@ export default function Welcome() {
               className="focus-ring w-full rounded-full bg-cod-btn text-white font-semibold py-3.5 shadow-md
                          transition-all duration-200 hover:shadow-lg hover:brightness-105 active:scale-[0.98]"
             >
-              Purchase Admission Form
+              Enroll Now
             </button>
 
             <button
