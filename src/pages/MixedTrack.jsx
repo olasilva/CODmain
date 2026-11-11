@@ -46,7 +46,7 @@ const courses = [
 export default function MixedTrack() {
   return (
     <div className="bg-slate-50 min-h-screen font-figma">
-      <ProgrammeBreadcrumb current="Mixed Track" />
+      <ProgrammeBreadcrumb current="Academic" />
 
       <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
         {/* Hero banner */}
@@ -68,7 +68,7 @@ export default function MixedTrack() {
 
           <div className="relative">
             <h1 className="font-bold text-3xl md:text-5xl text-white">
-              Mixed Track
+              Academic
             </h1>
             <p className="mt-3 text-white/80 text-base md:text-lg max-w-lg">
               The best of both worlds — a perfectly balanced curriculum that
@@ -94,7 +94,7 @@ export default function MixedTrack() {
             />
           </div>
           <p className="text-sm md:text-base text-cod-brand-navy leading-relaxed">
-            The Mixed Track is perfect for students who want to grow
+            The Academic programme is perfect for students who want to grow
             academically <span className="font-bold">and</span> musically.
             Our two flagship courses — Vocals and Piano — are taught by
             specialist tutors in a nurturing, performance-driven environment.
@@ -171,7 +171,7 @@ export default function MixedTrack() {
         <div className="mt-10">
           <ProgrammeCTA
             heading="Experience the harmony of academics and music."
-            subtext="Join the Mixed Track and let your child shine in every dimension."
+            subtext="Join the Academic programme and let your child shine in every dimension."
           />
         </div>
       </div>

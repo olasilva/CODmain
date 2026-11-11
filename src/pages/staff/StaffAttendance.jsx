@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import Avatar from '../../components/Avatar';
 import {
+  getAttendanceStudents,
+  markStaffAttendance,
   getAttendanceSubmissions,
   approveStaffAttendance,
   bulkApproveStaffAttendance,
@@ -35,10 +37,14 @@ function fmtDate(iso) {
 }
 
 export default function StaffAttendance() {
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(todayISO());
   const [submissions, setSubmissions] = useState([]);
+  const [roster, setRoster] = useState([]);
+  const [attendanceDraft, setAttendanceDraft] = useState({});
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rosterLoading, setRosterLoading] = useState(true);
+  const [savingAttendance, setSavingAttendance] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
@@ -63,6 +69,61 @@ export default function StaffAttendance() {
     load(date);
     // eslint-disable-next-line
   }, [date]);
+
+  useEffect(() => {
+    let active = true;
+    setRosterLoading(true);
+    getAttendanceStudents(date)
+      .then((res) => {
+        if (!active) return;
+        const students = res?.students || [];
+        setRoster(students);
+        setAttendanceDraft(
+          Object.fromEntries(
+            students.map((student) => [
+              String(student.id || student.student_id),
+              student.attendance_status || '',
+            ])
+          )
+        );
+      })
+      .catch((err) => {
+        if (active) setError(err.message || 'Could not load student roster');
+      })
+      .finally(() => {
+        if (active) setRosterLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [date]);
+
+  const handleSaveAttendance = async () => {
+    const records = roster.map((student) => ({
+      studentId: student.id || student.student_id,
+      status: attendanceDraft[String(student.id || student.student_id)],
+    }));
+    if (records.some((record) => !record.studentId || !record.status)) {
+      setError('Select an attendance status for every student before saving.');
+      return;
+    }
+
+    setSavingAttendance(true);
+    setError('');
+    try {
+      await markStaffAttendance(date, records);
+      await load(date);
+      setAttendanceDraft(
+        Object.fromEntries(
+          records.map((record) => [String(record.studentId), record.status])
+        )
+      );
+    } catch (err) {
+      setError(err.message || 'Could not save attendance');
+    } finally {
+      setSavingAttendance(false);
+    }
+  };
 
   const visible = useMemo(() => {
     let list = submissions;
@@ -147,7 +208,7 @@ export default function StaffAttendance() {
             Attendance
           </h1>
           <p className="text-sm text-black/50 mt-1 font-ebrima">
-            Review and approve student-submitted attendance.
+            Record attendance for your students and review submitted records.
           </p>
         </div>
 
@@ -222,6 +283,62 @@ export default function StaffAttendance() {
           />
         </div>
       )}
+
+      <section className="mb-6 overflow-hidden rounded-2xl border border-black/10 bg-white">
+        <div className="flex flex-col gap-3 border-b border-black/5 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div>
+            <h2 className="font-bold text-black font-ebrima">Record Attendance</h2>
+            <p className="mt-1 text-xs text-black/45">Select a status for each student.</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSaveAttendance}
+            disabled={rosterLoading || savingAttendance || roster.length === 0}
+            className="rounded-lg bg-[#1A73E8] px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {savingAttendance ? 'Saving…' : 'Save attendance'}
+          </button>
+        </div>
+        {rosterLoading ? (
+          <p className="px-5 py-8 text-center text-sm text-black/45">Loading student roster…</p>
+        ) : roster.length === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-black/45">No students assigned for attendance.</p>
+        ) : (
+          <ul className="divide-y divide-black/5">
+            {roster.map((student) => {
+              const studentKey = String(student.id || student.student_id);
+              return (
+                <li key={studentKey} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-black">
+                      {student.full_name || student.student_name || student.name || 'Student'}
+                    </p>
+                    <p className="mt-0.5 text-xs text-black/45">
+                      {student.student_code || student.student_id || student.class_name || student.class || ''}
+                    </p>
+                  </div>
+                  <select
+                    aria-label={`Attendance status for ${student.full_name || student.student_name || student.name || 'student'}`}
+                    value={attendanceDraft[studentKey] || ''}
+                    onChange={(event) =>
+                      setAttendanceDraft((current) => ({
+                        ...current,
+                        [studentKey]: event.target.value,
+                      }))
+                    }
+                    className="h-10 min-w-36 rounded-lg border border-black/15 bg-white px-3 text-sm"
+                  >
+                    <option value="">Select status</option>
+                    {Object.entries(STATUS_STYLES).map(([value, status]) => (
+                      <option key={value} value={value}>{status.label}</option>
+                    ))}
+                  </select>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mb-4">
         <div className="flex-1 bg-white rounded-xl border border-black/15 px-4 py-2.5 flex items-center gap-2.5">

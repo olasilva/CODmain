@@ -12,22 +12,22 @@ import { ACADEMIC_SESSION } from '../lib/config';
 // ─── Programme options ───
 const PROGRAMMES = [
   {
-    value: 'Regular Track',
-    label: 'Regular Track',
-    icon: 'bx-book-open',
-    desc: 'Academic classes from Discovery to Basic 5',
-  },
-  {
     value: 'Music Track',
-    label: 'Music Track',
+    label: 'Music',
     icon: 'bx-music',
     desc: 'Learn to play a musical instrument',
   },
   {
     value: 'Mixed Track',
-    label: 'Mixed Track',
+    label: 'Academic',
     icon: 'bx-shuffle',
     desc: 'Combine academics with music lessons',
+  },
+  {
+    value: 'Regular Track',
+    label: 'Mixed Media',
+    icon: 'bx-book-open',
+    desc: 'Academic classes from Discovery to Basic 5',
   },
 ];
 

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const tracks = [
   {
-    title: 'Music Track',
+    title: 'Music',
     desc: 'Piano, voice, and music theory for building young musicians with performance opportunities.',
     to: '/programmes/music-track',
     icon: (
@@ -16,7 +16,18 @@ const tracks = [
     accent: 'bg-cod-pink/10 text-cod-pink',
   },
   {
-    title: 'Regular Track',
+    title: 'Academic',
+    desc: 'A balanced curriculum combining music mastery with academic excellence.',
+    to: '/programmes/mixed-track',
+    icon: (
+      <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 21s-7-4.35-9.5-8.5C.8 8.6 2.6 5 6.2 5c2 0 3.3 1 3.8 1.8C10.5 6 11.8 5 13.8 5c3.6 0 5.4 3.6 3.7 7.5C15 16.65 12 21 12 21Z" strokeLinejoin="round" />
+      </svg>
+    ),
+    accent: 'bg-emerald-500/10 text-emerald-500',
+  },
+  {
+    title: 'Mixed Media',
     desc: 'Core academics in Maths, English, Science and Social Studies with a nurturing approach.',
     to: '/programmes/regular-track',
     icon: (
@@ -26,31 +37,6 @@ const tracks = [
       </svg>
     ),
     accent: 'bg-cod-blue/10 text-cod-blue',
-  },
-  {
-    title: 'Adult Education',
-    desc: 'Affordable music lessons for adults with a flexible plan, clear pricing, and a welcoming learning environment.',
-    to: '/programmes/adult-education',
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="9.5" cy="7" r="3.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M22 19v-1a4 4 0 0 0-3-3.87" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    ),
-    accent: 'bg-fuchsia-500/10 text-fuchsia-600',
-  },
-  {
-    title: 'Mixed Track',
-    desc: 'The best of both worlds; a balanced curriculum combining music mastery with academic excellence.',
-    to: '/programmes/mixed-track',
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 21s-7-4.35-9.5-8.5C.8 8.6 2.6 5 6.2 5c2 0 3.3 1 3.8 1.8C10.5 6 11.8 5 13.8 5c3.6 0 5.4 3.6 3.7 7.5C15 16.65 12 21 12 21Z" strokeLinejoin="round" />
-      </svg>
-    ),
-    accent: 'bg-emerald-500/10 text-emerald-500',
   },
 ]
 

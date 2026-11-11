@@ -4,6 +4,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   getStudentById,
   getStudentIdCardRequests,
+  updateStudent,
   updateStudentId,
   approveStudentIdCardRequest,
 } from '../../lib/api';
@@ -33,6 +34,11 @@ export default function AdminStudentProfile() {
   const [editingStudentId, setEditingStudentId] = useState(false);
   const [studentIdDraft, setStudentIdDraft] = useState('');
   const [savingStudentId, setSavingStudentId] = useState(false);
+  const [editingClass, setEditingClass] = useState(false);
+  const [classDraft, setClassDraft] = useState('');
+  const [savingClass, setSavingClass] = useState(false);
+  const [classActionError, setClassActionError] = useState('');
+  const [classActionSuccess, setClassActionSuccess] = useState('');
   const [approvingRequestId, setApprovingRequestId] = useState(null);
   const [idCardActionError, setIdCardActionError] = useState('');
   const [idCardActionSuccess, setIdCardActionSuccess] = useState('');
@@ -42,6 +48,11 @@ export default function AdminStudentProfile() {
       setStudentIdDraft(data.student.student_id);
     }
   }, [data?.student?.student_id]);
+
+  useEffect(() => {
+    const currentClass = data?.student?.class || data?.student?.class_name || data?.student?.level || '';
+    setClassDraft(currentClass);
+  }, [data?.student?.class, data?.student?.class_name, data?.student?.level]);
 
   const student = data?.student || null;
   const payments = data?.payments || [];
@@ -112,6 +123,29 @@ export default function AdminStudentProfile() {
       setIdCardActionError(updateError.message || 'Could not update the student ID.');
     } finally {
       setSavingStudentId(false);
+    }
+  };
+
+  const handleSaveClass = async (event) => {
+    event.preventDefault();
+    const nextClass = classDraft.trim();
+    if (!nextClass) {
+      setClassActionError('Enter the student’s class.');
+      return;
+    }
+
+    setSavingClass(true);
+    setClassActionError('');
+    setClassActionSuccess('');
+    try {
+      await updateStudent(student.id, { class: nextClass });
+      setClassActionSuccess('Student class updated.');
+      setEditingClass(false);
+      refetch();
+    } catch (updateError) {
+      setClassActionError(updateError.message || 'Could not update the student class.');
+    } finally {
+      setSavingClass(false);
     }
   };
 
@@ -316,6 +350,55 @@ export default function AdminStudentProfile() {
                 onClick={() => setEditingStudentId(false)}
                 className="h-11 rounded-lg border border-black/15 px-4 text-sm font-bold text-black/65"
               >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </Section>
+
+      <Section title="Class Placement">
+        {(classActionError || classActionSuccess) && (
+          <p className={`mb-3 text-sm ${classActionError ? 'text-red-600' : 'text-green-700'}`} role={classActionError ? 'alert' : 'status'}>
+            {classActionError || classActionSuccess}
+          </p>
+        )}
+        {!editingClass ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="font-semibold text-black/75">
+              {student.class || student.class_name || student.level || 'Class not set'}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setClassDraft(student.class || student.class_name || student.level || '');
+                setClassActionError('');
+                setClassActionSuccess('');
+                setEditingClass(true);
+              }}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#1A73E8] px-4 text-sm font-bold text-[#1A73E8] hover:bg-blue-50"
+            >
+              <i className="bx bx-edit" aria-hidden="true" />
+              Edit class
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSaveClass} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <label className="flex-1 text-sm font-semibold text-black/70">
+              Class
+              <input
+                value={classDraft}
+                onChange={(event) => setClassDraft(event.target.value)}
+                placeholder="e.g. Basic 3"
+                className="mt-1.5 h-11 w-full rounded-lg border border-black/20 px-3 text-sm outline-none focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/15"
+                required
+              />
+            </label>
+            <div className="flex gap-2">
+              <button type="submit" disabled={savingClass} className="h-11 rounded-lg bg-[#1A73E8] px-4 text-sm font-bold text-white disabled:opacity-60">
+                {savingClass ? 'Saving…' : 'Save class'}
+              </button>
+              <button type="button" onClick={() => setEditingClass(false)} className="h-11 rounded-lg border border-black/15 px-4 text-sm font-bold text-black/65">
                 Cancel
               </button>
             </div>

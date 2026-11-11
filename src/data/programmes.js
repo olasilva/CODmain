@@ -2,7 +2,7 @@
 
 export const musicTrack = {
   slug: "music-track",
-  name: "Music Track",
+  name: "Music",
   tagline: "Discover the joy of music through expert tuition in a wide range of instruments and vocal performance.",
   icon: "music-note",
   courses: [
@@ -22,7 +22,7 @@ export const musicTrack = {
 
 export const regularTrack = {
   slug: "regular-track",
-  name: "Regular Track",
+  name: "Mixed Media",
   tagline: "A well-rounded academic foundation delivered alongside creative and extracurricular development.",
   icon: "book",
   courses: [

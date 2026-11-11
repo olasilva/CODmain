@@ -95,7 +95,7 @@ const levels = [
 export default function RegularTrack() {
   return (
     <div className="bg-slate-50 min-h-screen">
-      <ProgrammeBreadcrumb current="Regular Track" />
+      <ProgrammeBreadcrumb current="Mixed Media" />
 
       <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
         {/* Hero banner */}
@@ -112,7 +112,7 @@ export default function RegularTrack() {
 
           <div className="relative">
             <h1 className="font-display font-extrabold text-3xl md:text-4xl text-white">
-              Regular Track
+              Mixed Media
             </h1>
             <p className="mt-2 text-white/85 text-sm md:text-base max-w-lg">
               A nurturing academic curriculum from Discovery through Basic 5,
@@ -198,7 +198,7 @@ export default function RegularTrack() {
         <div className="mt-10">
           <ProgrammeCTA
             heading="Give your child the best start in life."
-            subtext="Enrol in our Regular Track and watch them flourish every step of the way."
+            subtext="Enrol in Mixed Media and watch them flourish every step of the way."
           />
         </div>
       </div>

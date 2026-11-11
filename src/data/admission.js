@@ -5,7 +5,7 @@
 export const admissionTracks = [
   {
     id: "music",
-    name: "Music Only Track",
+    name: "Music",
     description: "Choose one instrument or vocal course",
     courses: [
       "Piano", "Guitars", "Ukulele", "Violin", "Viola", "Cello",
@@ -13,9 +13,15 @@ export const admissionTracks = [
     ],
   },
   {
+    id: "mixed",
+    name: "Academic",
+    description: "Combined academic programme",
+    courses: ["Vocals & Piano"],
+  },
+  {
     id: "regular",
-    name: "Regular Track",
-    description: "Early childhood & primary education programmes",
+    name: "Mixed Media",
+    description: "Early childhood and primary education programmes",
     courses: [
       "Discovery",
       "Pre Nursery",
@@ -27,11 +33,5 @@ export const admissionTracks = [
       "Basic 4",
       "Basic 5",
     ],
-  },
-  {
-    id: "mixed",
-    name: "Mixed Track",
-    description: "Combined music & academic programme",
-    courses: ["Vocals & Piano"],
   },
 ];

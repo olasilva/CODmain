@@ -168,7 +168,7 @@ export default function MusicTrack() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      <ProgrammeBreadcrumb current="Music Track" />
+      <ProgrammeBreadcrumb current="Music" />
 
       <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
         {/* Hero banner */}
@@ -185,7 +185,7 @@ export default function MusicTrack() {
 
           <div className="relative">
             <h1 className="font-display font-extrabold text-3xl md:text-4xl text-white">
-              Music Track
+              Music
             </h1>
             <p className="mt-2 text-white/85 text-sm md:text-base max-w-lg">
               Discover the joy of music through expert tuition in a wide range
