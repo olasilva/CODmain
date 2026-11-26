@@ -14,13 +14,13 @@ export const admissionTracks = [
   },
   {
     id: "mixed",
-    name: "Academic",
-    description: "Combined academic programme",
+    name: "academy",
+    description: "Combined academy programme",
     courses: ["Vocals & Piano"],
   },
   {
     id: "regular",
-    name: "Mixed Media",
+    name: "Vocational",
     description: "Early childhood and primary education programmes",
     courses: [
       "Discovery",

@@ -123,11 +123,11 @@ export default function ProgrammeCard() {
         {data.instrument && (
           <Row icon="bx-music" label="Instrument" value={data.instrument} />
         )}
-        {data.academicYear && (
+        {data.academyYear && (
           <Row
             icon="bx-calendar"
-            label="Academic Year"
-            value={data.academicYear}
+            label="academy Year"
+            value={data.academyYear}
           />
         )}
         {data.enrolledAt && (

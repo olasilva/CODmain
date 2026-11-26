@@ -168,7 +168,7 @@ const INSTRUMENT_LESSONS = {
 };
 
 // ═══════════════════════════════════════════════════════════════
-// REGULAR TRACK — academic subjects by class level
+// REGULAR TRACK — academy subjects by class level
 // ═══════════════════════════════════════════════════════════════
 
 const REGULAR_TRACK_SUBJECTS = {
@@ -438,7 +438,7 @@ export default function StudentLearnMore() {
   const CATEGORIES = useMemo(() => {
     const cats = [{ key: 'all', label: 'All' }];
     if (hasMusic) cats.push({ key: 'music', label: 'Music' });
-    if (hasRegular) cats.push({ key: 'regular', label: 'Academics' });
+    if (hasRegular) cats.push({ key: 'regular', label: 'academys' });
     return cats;
   }, [hasMusic, hasRegular]);
 
@@ -469,9 +469,9 @@ export default function StudentLearnMore() {
           {track === 'music'
             ? 'Music lessons and theory hand-picked for your instrument and level.'
             : track === 'regular'
-            ? 'Free academic lessons matched to your class.'
+            ? 'Free academy lessons matched to your class.'
             : track === 'mixed'
-            ? 'Both music and academic lessons, chosen for your track.'
+            ? 'Both music and academy lessons, chosen for your track.'
             : 'Free lessons curated for you.'}
         </p>
 

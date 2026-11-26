@@ -47,8 +47,8 @@ const MUSIC_LEVELS = [
 const CATEGORIES = [
   {
     value: 'regular',
-    label: 'Mixed Media',
-    desc: 'Discovery – Basic 5 academic classes',
+    label: 'Vocational',
+    desc: 'Discovery – Basic 5 academy classes',
     icon: 'bx-book-open',
     color: 'text-blue-600',
     bg: 'bg-blue-50',
@@ -69,8 +69,8 @@ const CATEGORIES = [
   },
   {
     value: 'mixed',
-    label: 'Academic',
-    desc: 'Both academics and music',
+    label: 'academy',
+    desc: 'Both academys and music',
     icon: 'bx-shuffle',
     color: 'text-purple-600',
     bg: 'bg-purple-50',

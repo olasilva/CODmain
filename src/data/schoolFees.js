@@ -2,7 +2,7 @@
 // First Term, 2026/2027 school fee schedules — Clan of David Art and Music Academy.
 // Source: official fee schedule flyers. Totals are computed from the items.
 
-export const FEE_SESSION = 'First Term, 2026/2027 Academic Session';
+export const FEE_SESSION = 'First Term, 2026/2027 academy Session';
 
 export const SCHOOL_ACCOUNT = {
   bank: 'Zenith Bank',

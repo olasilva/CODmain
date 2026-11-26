@@ -8,7 +8,7 @@
 export const categories = [
   "All",
   "Events",
-  "Academics",
+  "academys",
   "Music",
   "Achievements",
   "Staff",

@@ -78,7 +78,7 @@ const levels = [
     bar: 'bg-cod-blue',
     tagClass: 'bg-cod-blue/10 text-cod-blue',
     icon: 'bx-book-open',
-    desc: 'Strengthening analytical thinking and broad academic content across key disciplines.',
+    desc: 'Strengthening analytical thinking and broad academy content across key disciplines.',
     subjects: ['Mathematics', 'Quantitative Reasoning', 'English Language', 'Verbal Reasoning', 'Basic Science', 'C R S', 'Cultural and Creative Art (C C A)', 'Physical and Health Education (P H E)', 'Music', 'Agricultural Studies', 'French', 'Basic Technology', 'Information Technology', 'Social Studies', 'Civic Education', 'History'],
   },
   {
@@ -95,7 +95,7 @@ const levels = [
 export default function RegularTrack() {
   return (
     <div className="bg-slate-50 min-h-screen">
-      <ProgrammeBreadcrumb current="Mixed Media" />
+      <ProgrammeBreadcrumb current="Vocational" />
 
       <div className="max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
         {/* Hero banner */}
@@ -112,10 +112,10 @@ export default function RegularTrack() {
 
           <div className="relative">
             <h1 className="font-display font-extrabold text-3xl md:text-4xl text-white">
-              Mixed Media
+              Vocational
             </h1>
             <p className="mt-2 text-white/85 text-sm md:text-base max-w-lg">
-              A nurturing academic curriculum from Discovery through Basic 5,
+              A nurturing academy curriculum from Discovery through Basic 5,
               building confident and curious learners.
             </p>
           </div>
@@ -198,7 +198,7 @@ export default function RegularTrack() {
         <div className="mt-10">
           <ProgrammeCTA
             heading="Give your child the best start in life."
-            subtext="Enrol in Mixed Media and watch them flourish every step of the way."
+            subtext="Enrol in Vocational and watch them flourish every step of the way."
           />
         </div>
       </div>

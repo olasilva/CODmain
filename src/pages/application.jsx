@@ -7,7 +7,7 @@ import { DocumentIcon } from '../components/BoxIcons';
 import { COUNTRIES } from '../data/countries';
 import { startAdmission, getSession, isLoggedIn } from '../lib/api';
 import { API_URL } from '../lib/config';
-import { ACADEMIC_SESSION } from '../lib/config';
+import { academy_SESSION } from '../lib/config';
 
 // ─── Programme options ───
 const PROGRAMMES = [
@@ -19,15 +19,15 @@ const PROGRAMMES = [
   },
   {
     value: 'Mixed Track',
-    label: 'Academic',
+    label: 'academy',
     icon: 'bx-shuffle',
-    desc: 'Combine academics with music lessons',
+    desc: 'Combine academys with music lessons',
   },
   {
     value: 'Regular Track',
-    label: 'Mixed Media',
+    label: 'Vocational',
     icon: 'bx-book-open',
-    desc: 'Academic classes from Discovery to Basic 5',
+    desc: 'academy classes from Discovery to Basic 5',
   },
 ];
 
@@ -228,7 +228,7 @@ export default function Application() {
 
       const applicationData = {
         programmeId: form.programme,
-        academicYear: ACADEMIC_SESSION,
+        academyYear: academy_SESSION,
         personalInfo: {
           fullName: form.studentName,
           dateOfBirth: form.dob,
@@ -244,7 +244,7 @@ export default function Application() {
           comments: form.comments,
           passportUrl,                            // ← passport URL submitted
         },
-        academicInfo: {
+        academyInfo: {
           trackName: form.programme,
           course: form.programme,
           regularClass: showsClass ? form.regularClass : null,
@@ -676,7 +676,7 @@ export default function Application() {
                     rows={3}
                     value={form.experience}
                     onChange={update('experience')}
-                    placeholder="Any previous musical or academic experience…"
+                    placeholder="Any previous musical or academy experience…"
                     className="field resize-none"
                   />
                 </Field>

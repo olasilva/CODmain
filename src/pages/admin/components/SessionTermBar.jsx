@@ -46,7 +46,7 @@ export default function SessionTermBar({
       <div className="bg-white rounded-2xl border border-black/10 p-4 mb-6 flex flex-col sm:flex-row sm:items-end gap-3">
         <div className="flex-1">
           <label className="block text-xs font-bold text-black/60 mb-1 font-ebrima">
-            Academic Session
+            academy Session
           </label>
           <select
             value={sessionId || ''}

@@ -731,13 +731,13 @@ export async function approveBankTransfer(paymentId, approvalDetails = {}) {
   });
 }
 
-// ============ ADMIN — ACADEMIC SESSIONS & TERMS ============
+// ============ ADMIN — academy SESSIONS & TERMS ============
 
 export async function getAdminSessions() {
   return request("/admin/sessions");
 }
 
-export async function createAcademicSession({ name, startDate, endDate, terms }) {
+export async function createacademySession({ name, startDate, endDate, terms }) {
   return request("/admin/sessions", {
     method: "POST",
     body: JSON.stringify({ name, startDate, endDate, terms }),
@@ -1266,9 +1266,9 @@ export default {
   getAdminPayments,
   approveBankTransfer,
 
-  // Admin — academic sessions & terms
+  // Admin — academy sessions & terms
   getAdminSessions,
-  createAcademicSession,
+  createacademySession,
   setCurrentTerm,
 
   // Admin — promotion (Option A)

@@ -42,7 +42,7 @@ const values = [
   },
   {
     title: "Excellence",
-    body: "High standards in both the arts and academics — because both shape the whole person.",
+    body: "High standards in both the arts and academys — because both shape the whole person.",
     icon: "bx-medal",
   },
 ];
@@ -142,8 +142,8 @@ export default function About() {
               general art.
             </p>
             <p className="text-slate-500 leading-relaxed mb-4">
-              Our academic programme is structured to harness skills development
-              while achieving academic excellence. We offer{" "}
+              Our academy programme is structured to harness skills development
+              while achieving academy excellence. We offer{" "}
               <span className="font-semibold text-slate-700">
                 after-school classes
               </span>
@@ -320,7 +320,7 @@ export default function About() {
             className="text-white text-2xl md:text-3xl font-bold mb-3 opacity-0 animate-fadeUp"
             style={{ animationDelay: "0ms" }}
           >
-            Gain Admission Into Our Academic Sessions
+            Gain Admission Into Our academy Sessions
           </h2>
           <p
             className="text-blue-100 mb-8 max-w-xl mx-auto opacity-0 animate-fadeUp"

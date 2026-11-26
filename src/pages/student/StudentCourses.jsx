@@ -123,8 +123,8 @@ export default function StudentCourses() {
                     value={programme.admissionNumber || '—'}
                   />
                   <InfoBlock
-                    label="Academic Year"
-                    value={programme.academicYear || '—'}
+                    label="academy Year"
+                    value={programme.academyYear || '—'}
                   />
                   <InfoBlock
                     label="Status"

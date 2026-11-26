@@ -22,7 +22,7 @@ export default function ApplyAdmission() {
             located in Abuja, Nigeria. Our school is known for delivering a
             well-rounded education that equips children with essential music
             skills, nurtures creativity, and builds a strong foundation for
-            academic excellence.
+            academy excellence.
           </p>
           <Link
             to="/admission/course-selection"

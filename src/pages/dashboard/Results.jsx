@@ -18,7 +18,7 @@ export default function Results() {
       <div className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6 animate-fadeUp">
           <div>
-            <h1 className="text-slate-900 text-3xl font-bold mb-1">Academic Results</h1>
+            <h1 className="text-slate-900 text-3xl font-bold mb-1">academy Results</h1>
             <p className="text-slate-500 text-sm">
               {student.name} • {student.className} • Session {student.session} • ID: {student.studentId}
             </p>
@@ -52,7 +52,7 @@ export default function Results() {
               {t}
             </button>
           ))}
-          <span className="text-slate-400 text-sm ml-2">Academic Session: {student.session}</span>
+          <span className="text-slate-400 text-sm ml-2">academy Session: {student.session}</span>
         </div>
 
         {!data ? (

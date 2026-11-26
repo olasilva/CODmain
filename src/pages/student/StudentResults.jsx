@@ -96,7 +96,7 @@ export default function StudentResults() {
             <div className="flex justify-between items-start flex-wrap gap-4">
               <div>
                 <h1 className="text-[28px] font-bold text-black font-ebrima leading-[33.6px]">
-                  Academic Results
+                  academy Results
                 </h1>
                 <p className="text-sm text-black/55 font-ebrima pt-1">
                   {studentInfo.name} • {studentInfo.class || 'Student'} • Session {studentInfo.session || '2026/2027'}
@@ -127,7 +127,7 @@ export default function StudentResults() {
                   {term}
                 </button>
               ))}
-              <span className="ml-3 text-sm text-black/40 font-ebrima">Academic Session: {studentInfo.session || '2026/2027'}</span>
+              <span className="ml-3 text-sm text-black/40 font-ebrima">academy Session: {studentInfo.session || '2026/2027'}</span>
             </div>
 
             {error && (

@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  createAcademicSession,
+  createacademySession,
   getAdminSessions,
   setCurrentTerm,
 } from '../../lib/api';
-import { ACADEMIC_SESSION } from '../../lib/config';
+import { academy_SESSION } from '../../lib/config';
 
-const tabs = ['School Info', 'Academic Year', 'Users & Roles', 'Notifications'];
+const tabs = ['School Info', 'academy Year', 'Users & Roles', 'Notifications'];
 const initialForm = {
-  name: ACADEMIC_SESSION,
+  name: academy_SESSION,
   startDate: '',
   endDate: '',
   term1Start: '',
@@ -34,14 +34,14 @@ export default function AdminSettings() {
       const result = await getAdminSessions();
       setSessions(result?.sessions || []);
     } catch (error) {
-      setSessionError(error.message || 'Failed to load academic sessions');
+      setSessionError(error.message || 'Failed to load academy sessions');
     } finally {
       setLoadingSessions(false);
     }
   }
 
   useEffect(() => {
-    if (activeTab === 'Academic Year') loadSessions();
+    if (activeTab === 'academy Year') loadSessions();
   }, [activeTab]);
 
   const updateField = (field) => (event) => {
@@ -53,7 +53,7 @@ export default function AdminSettings() {
     setMessage('');
     setSessionError('');
     try {
-      await createAcademicSession({
+      await createacademySession({
         name: form.name.trim(),
         startDate: form.startDate,
         endDate: form.endDate,
@@ -63,11 +63,11 @@ export default function AdminSettings() {
           endDate: form[`term${termNumber}End`],
         })),
       });
-      setMessage('Academic session created successfully.');
+      setMessage('academy session created successfully.');
       setForm(initialForm);
       await loadSessions();
     } catch (error) {
-      setSessionError(error.message || 'Failed to save academic structure');
+      setSessionError(error.message || 'Failed to save academy structure');
     }
   }
 
@@ -76,7 +76,7 @@ export default function AdminSettings() {
     setSessionError('');
     try {
       await setCurrentTerm(sessionId, termNumber);
-      setMessage('Current academic term updated.');
+      setMessage('Current academy term updated.');
       await loadSessions();
     } catch (error) {
       setSessionError(error.message || 'Failed to update current term');
@@ -104,8 +104,8 @@ export default function AdminSettings() {
         ))}
       </div>
       <div className="bg-white rounded-2xl border border-black/10 p-4 sm:p-8 max-w-2xl">
-        {activeTab === 'Academic Year' ? (
-          <AcademicSettings
+        {activeTab === 'academy Year' ? (
+          <academySettings
             form={form}
             updateField={updateField}
             onSubmit={handleCreateSession}
@@ -157,11 +157,11 @@ function SchoolInfo() {
   );
 }
 
-function AcademicSettings({ form, updateField, onSubmit, sessions, loading, error, message, onSetCurrentTerm }) {
+function academySettings({ form, updateField, onSubmit, sessions, loading, error, message, onSetCurrentTerm }) {
   return (
     <div>
       <h2 className="text-2xl font-bold text-black/65 font-ebrima">
-        Academic Structure
+        academy Structure
       </h2>
       <p className="mt-2 text-sm text-black/55">
         Create sessions, define term dates, and choose the current term.
@@ -184,13 +184,13 @@ function AcademicSettings({ form, updateField, onSubmit, sessions, loading, erro
           </fieldset>
         ))}
         <button type="submit" className="px-8 py-3 bg-[#1A73E8] rounded-xl text-white font-bold hover:bg-blue-700 transition">
-          Create Academic Session
+          Create academy Session
         </button>
       </form>
       <div className="mt-8 space-y-3">
         <h3 className="font-bold text-black/65">Configured sessions</h3>
         {loading && <p className="text-sm text-black/50">Loading sessions…</p>}
-        {!loading && sessions.length === 0 && <p className="text-sm text-black/50">No academic sessions configured yet.</p>}
+        {!loading && sessions.length === 0 && <p className="text-sm text-black/50">No academy sessions configured yet.</p>}
         {sessions.map((session) => (
           <div key={session.id} className="rounded-xl border border-black/10 p-4 flex flex-wrap items-center justify-between gap-3">
             <div>

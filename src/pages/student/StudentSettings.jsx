@@ -363,7 +363,7 @@ export default function StudentSettings() {
           <InfoRow label="Role" value={user?.role} />
           <InfoRow label="Student ID" value={student?.student_id} />
           <InfoRow label="Status" value={student?.status} />
-          <InfoRow label="Academic Year" value={student?.academic_year} />
+          <InfoRow label="academy Year" value={student?.academy_year} />
           <InfoRow
             label="Member Since"
             value={

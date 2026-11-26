@@ -1,4 +1,4 @@
-// src/pages/admin/AdminStudentprofile.jsx
+// src/pages/admin/AdminStudentProfile.jsx
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
@@ -31,6 +31,14 @@ export default function AdminStudentProfile() {
     [studentId],
     { initialData: { requests: [] } }
   );
+
+  // ─── Name Editing State ───
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [savingName, setSavingName] = useState(false);
+  const [nameActionError, setNameActionError] = useState('');
+  const [nameActionSuccess, setNameActionSuccess] = useState('');
+
   const [editingStudentId, setEditingStudentId] = useState(false);
   const [studentIdDraft, setStudentIdDraft] = useState('');
   const [savingStudentId, setSavingStudentId] = useState(false);
@@ -42,6 +50,12 @@ export default function AdminStudentProfile() {
   const [approvingRequestId, setApprovingRequestId] = useState(null);
   const [idCardActionError, setIdCardActionError] = useState('');
   const [idCardActionSuccess, setIdCardActionSuccess] = useState('');
+
+  useEffect(() => {
+    if (data?.student?.full_name) {
+      setNameDraft(data.student.full_name);
+    }
+  }, [data?.student?.full_name]);
 
   useEffect(() => {
     if (data?.student?.student_id) {
@@ -79,14 +93,10 @@ export default function AdminStudentProfile() {
     );
   }
 
-  const photoUrl =
-    student.photo_url || student.user?.avatar_url || null;
-
+  const photoUrl = student.photo_url || student.user?.avatar_url || null;
   const latestPayment = payments[0];
   const latestAdmission = admissions[0];
-  const idCardRequests = Array.isArray(idCardData)
-    ? idCardData
-    : idCardData?.requests || [];
+  const idCardRequests = Array.isArray(idCardData) ? idCardData : idCardData?.requests || [];
   const isMusicStudent = [
     student.programme,
     latestAdmission?.track_name,
@@ -96,12 +106,33 @@ export default function AdminStudentProfile() {
     .join(' ')
     .toLowerCase()
     .includes('music');
-  const studentIdPattern = isMusicStudent
-    ? /^COD-2026-\d{3}$/
-    : /^COD-2026\/2027-\d{4}$/;
-  const expectedIdFormat = isMusicStudent
-    ? 'COD-2026-001'
-    : 'COD-2026/2027-0001';
+  
+  const studentIdPattern = isMusicStudent ? /^COD-2026-\d{3}$/ : /^COD-2026\/2027-\d{4}$/;
+  const expectedIdFormat = isMusicStudent ? 'COD-2026-001' : 'COD-2026/2027-0001';
+
+  // ─── Save Name Handler ───
+  const handleSaveName = async (event) => {
+    event.preventDefault();
+    const nextName = nameDraft.trim();
+    if (!nextName) {
+      setNameActionError('Name cannot be empty.');
+      return;
+    }
+
+    setSavingName(true);
+    setNameActionError('');
+    setNameActionSuccess('');
+    try {
+      await updateStudent(student.id, { fullName: nextName });
+      setNameActionSuccess('Student name updated successfully.');
+      setEditingName(false);
+      refetch();
+    } catch (updateError) {
+      setNameActionError(updateError.message || 'Could not update the student name.');
+    } finally {
+      setSavingName(false);
+    }
+  };
 
   const handleSaveStudentId = async (event) => {
     event.preventDefault();
@@ -160,8 +191,7 @@ export default function AdminStudentProfile() {
         isMusicStudent ? 'music' : 'regular'
       );
       const updatedStudent = result?.student || result?.data?.student || {};
-      const assignedId =
-        updatedStudent.student_id || result?.student_id || result?.studentId || student.student_id;
+      const assignedId = updatedStudent.student_id || result?.student_id || result?.studentId || student.student_id;
       if (!assignedId) {
         throw new Error('The server did not return the generated student ID.');
       }
@@ -178,23 +208,16 @@ export default function AdminStudentProfile() {
       setApprovingRequestId(null);
     }
   };
-  const submittedCount = reportCards.filter(
-    (r) => r.status === 'submitted'
-  ).length;
+  const submittedCount = reportCards.filter((r) => r.status === 'submitted').length;
 
   return (
     <div className="max-w-[1140px] mx-auto">
-      {/* Back */}
-      <Link
-        to="/admin/students"
-        className="inline-flex items-center gap-2 text-[#1A73E8] font-bold mb-6 text-sm"
-      >
+      <Link to="/admin/students" className="inline-flex items-center gap-2 text-[#1A73E8] font-bold mb-6 text-sm">
         ← Back to Students
       </Link>
 
       {/* ─── Profile Header ─── */}
       <div className="bg-white rounded-2xl border border-black/10 p-6 flex flex-wrap items-center gap-6 mb-6">
-        {/* Photo / Initial */}
         <div className="w-20 h-20 rounded-full overflow-hidden bg-blue-50 flex items-center justify-center text-3xl font-bold text-[#1A73E8] shrink-0">
           {photoUrl ? (
             <img
@@ -211,39 +234,68 @@ export default function AdminStudentProfile() {
         </div>
 
         <div className="flex-1 min-w-[200px]">
-          <h1 className="text-2xl font-bold text-black font-ebrima">
-            {student.full_name || 'Unnamed Student'}
-          </h1>
+          {!editingName ? (
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-black font-ebrima">
+                {student.full_name || 'Unnamed Student'}
+              </h1>
+              <button
+                type="button"
+                onClick={() => {
+                  setNameDraft(student.full_name || '');
+                  setNameActionError('');
+                  setNameActionSuccess('');
+                  setEditingName(true);
+                }}
+                className="text-[#1A73E8] hover:bg-blue-50 p-1.5 rounded-lg"
+                title="Edit Name"
+              >
+                <i className="bx bx-edit text-lg" />
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSaveName} className="flex flex-col gap-2 w-full max-w-md">
+              <input
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                className="h-10 w-full rounded-lg border border-black/20 px-3 text-lg font-bold outline-none focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/15"
+                required
+              />
+              {nameActionError && <p className="text-xs text-red-600">{nameActionError}</p>}
+              <div className="flex gap-2">
+                <button type="submit" disabled={savingName} className="h-9 rounded-lg bg-[#1A73E8] px-3 text-sm font-bold text-white disabled:opacity-60">
+                  {savingName ? 'Saving…' : 'Save Name'}
+                </button>
+                <button type="button" onClick={() => setEditingName(false)} className="h-9 rounded-lg border border-black/15 px-3 text-sm font-bold text-black/65">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+          
+          {nameActionSuccess && <p className="text-sm text-green-700 mt-1">{nameActionSuccess}</p>}
+
           <div className="flex flex-wrap items-center gap-3 mt-1 text-sm">
             <span className="text-[#1A73E8] font-bold font-mono">
               {student.student_id}
             </span>
             <span className="text-black/40">•</span>
             <span className="text-black/60">{student.user?.email}</span>
-            {student.academic_year && (
+            {student.academy_year && (
               <>
                 <span className="text-black/40">•</span>
-                <span className="text-black/60">{student.academic_year}</span>
+                <span className="text-black/60">{student.academy_year}</span>
               </>
             )}
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() =>
-              navigate(`/admin/students/${student.id}/results`)
-            }
+            onClick={() => navigate(`/admin/students/${student.id}/results`)}
             className="px-5 py-3 bg-[#1A73E8] text-white text-sm font-bold rounded-xl hover:bg-blue-700 flex items-center gap-2"
           >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
             </svg>
@@ -445,15 +497,11 @@ export default function AdminStudentProfile() {
         )}
       </Section>
 
-      {/* ─── Classes & Teachers ─── */}
       {classes.length > 0 && (
         <Section title="Enrolled Classes">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {classes.map((c) => (
-              <div
-                key={c.id}
-                className="flex items-center gap-3 p-4 border border-black/10 rounded-xl"
-              >
+              <div key={c.id} className="flex items-center gap-3 p-4 border border-black/10 rounded-xl">
                 <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#1A73E8] flex items-center justify-center text-sm font-bold">
                   {(c.title || c.subject || '?').charAt(0).toUpperCase()}
                 </div>
@@ -473,35 +521,29 @@ export default function AdminStudentProfile() {
         </Section>
       )}
 
-      {/* ─── Admission ─── */}
       <Section title="Programme & Admission">
         {admissions.length === 0 ? (
           <Empty text="No admission records yet." />
         ) : (
           <div className="space-y-3">
             {admissions.map((a) => (
-              <div
-                key={a.id}
-                className="flex items-center justify-between p-4 border border-black/10 rounded-xl"
-              >
+              <div key={a.id} className="flex items-center justify-between p-4 border border-black/10 rounded-xl">
                 <div>
                   <div className="font-bold text-black">
                     {a.course} · {a.track_name}
                   </div>
                   <div className="text-xs text-black/50 mt-0.5">
-                    {a.academic_year} · Applied{' '}
+                    {a.academy_year} · Applied{' '}
                     {new Date(a.created_at).toLocaleDateString('en-NG')}
                   </div>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold ${
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                     a.status === 'approved'
                       ? 'bg-green-100 text-green-700'
                       : a.status === 'rejected'
                       ? 'bg-red-100 text-red-700'
                       : 'bg-yellow-100 text-yellow-700'
-                  }`}
-                >
+                  }`}>
                   {a.status}
                 </span>
               </div>
@@ -510,7 +552,6 @@ export default function AdminStudentProfile() {
         )}
       </Section>
 
-      {/* ─── Payments ─── */}
       <Section title="Payments">
         {payments.length === 0 ? (
           <Empty text="No payments recorded yet." />
@@ -519,45 +560,27 @@ export default function AdminStudentProfile() {
             <table className="w-full">
               <thead className="bg-[#F8F9FA] border-y border-black/10">
                 <tr>
-                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">
-                    Reference
-                  </th>
-                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">
-                    Description
-                  </th>
-                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">
-                    Amount
-                  </th>
-                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">
-                    Status
-                  </th>
-                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">
-                    Date
-                  </th>
+                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">Reference</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">Description</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">Amount</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">Status</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-bold text-black/55">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {payments.map((p) => (
                   <tr key={p.id} className="border-b border-black/5">
-                    <td className="py-2.5 px-4 font-mono text-xs text-black/70">
-                      {p.reference || '—'}
-                    </td>
-                    <td className="py-2.5 px-4 text-sm text-black/70">
-                      {p.description || p.plan || '—'}
-                    </td>
-                    <td className="py-2.5 px-4 font-bold text-sm">
-                      ₦{Number(p.amount || 0).toLocaleString()}
-                    </td>
+                    <td className="py-2.5 px-4 font-mono text-xs text-black/70">{p.reference || '—'}</td>
+                    <td className="py-2.5 px-4 text-sm text-black/70">{p.description || p.plan || '—'}</td>
+                    <td className="py-2.5 px-4 font-bold text-sm">₦{Number(p.amount || 0).toLocaleString()}</td>
                     <td className="py-2.5 px-4">
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                           p.status === 'completed'
                             ? 'bg-green-100 text-green-700'
                             : p.status === 'pending'
                             ? 'bg-yellow-100 text-yellow-700'
                             : 'bg-red-100 text-red-700'
-                        }`}
-                      >
+                        }`}>
                         {p.status}
                       </span>
                     </td>
@@ -572,7 +595,6 @@ export default function AdminStudentProfile() {
         )}
       </Section>
 
-      {/* ─── Report Cards ─── */}
       <Section title="Report Cards">
         {reportCards.length === 0 ? (
           <Empty text="No report cards yet. Click 'Generate Report Card' above to create one." />
@@ -581,33 +603,23 @@ export default function AdminStudentProfile() {
             {reportCards.map((rc) => (
               <Link
                 key={rc.id}
-                to={`/admin/students/${student.id}/results?session=${encodeURIComponent(
-                  rc.session
-                )}&term=${encodeURIComponent(rc.term)}`}
+                to={`/admin/students/${student.id}/results?session=${encodeURIComponent(rc.session)}&term=${encodeURIComponent(rc.term)}`}
                 className="flex items-center justify-between p-4 border border-black/10 rounded-xl hover:bg-blue-50 transition"
               >
                 <div>
                   <div className="font-bold text-black flex items-center gap-2">
                     {rc.session} · {rc.term}
                     {rc.status === 'submitted' ? (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">
-                        ✓ Submitted
-                      </span>
+                      <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">✓ Submitted</span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold">
-                        Draft
-                      </span>
+                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold">Draft</span>
                     )}
                   </div>
                   <div className="text-xs text-black/50 mt-0.5">
-                    {rc.overall_percentage != null
-                      ? `${rc.overall_percentage}% · Grade ${rc.overall_grade || '—'}`
-                      : 'No scores yet'}
+                    {rc.overall_percentage != null ? `${rc.overall_percentage}% · Grade ${rc.overall_grade || '—'}` : 'No scores yet'}
                   </div>
                 </div>
-                <span className="text-[#1A73E8] font-bold text-sm">
-                  View →
-                </span>
+                <span className="text-[#1A73E8] font-bold text-sm">View →</span>
               </Link>
             ))}
           </div>
@@ -621,9 +633,7 @@ export default function AdminStudentProfile() {
 function SummaryCard({ label, value, valueColor = 'text-black' }) {
   return (
     <div className="bg-white rounded-2xl border border-black/10 p-5">
-      <p className="text-xs text-black/55 uppercase tracking-wide font-bold mb-1">
-        {label}
-      </p>
+      <p className="text-xs text-black/55 uppercase tracking-wide font-bold mb-1">{label}</p>
       <p className={`text-xl font-bold ${valueColor}`}>{value}</p>
     </div>
   );
@@ -632,16 +642,12 @@ function SummaryCard({ label, value, valueColor = 'text-black' }) {
 function Section({ title, children }) {
   return (
     <div className="bg-white rounded-2xl border border-black/10 p-6 mb-6">
-      <h2 className="text-lg font-bold text-black/80 font-ebrima mb-4">
-        {title}
-      </h2>
+      <h2 className="text-lg font-bold text-black/80 font-ebrima mb-4">{title}</h2>
       {children}
     </div>
   );
 }
 
 function Empty({ text }) {
-  return (
-    <div className="text-center py-6 text-black/50 text-sm">{text}</div>
-  );
+  return <div className="text-center py-6 text-black/50 text-sm">{text}</div>;
 }

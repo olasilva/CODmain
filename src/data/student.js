@@ -104,7 +104,7 @@ export const assignments = [
   },
 ];
 
-// --- Academic results / report card ------------------------------------
+// --- academy results / report card ------------------------------------
 
 const term1Subjects = [
   { name: "Mathematics", code: "MTH501", ca1: 18, ca2: 17, exam: 52, total: 87, grade: "A", remark: "Distinction", color: "bg-cod-blue" },
@@ -131,7 +131,7 @@ export const resultsByTerm = {
     bestSubject: { name: "Christian Religious Studies", score: 96 },
     needsAttention: { name: "Yoruba Language", score: 73 },
     teacherRemark: {
-      text: "Adaeze demonstrates excellent academic ability and a strong work ethic. Outstanding performance this term!",
+      text: "Adaeze demonstrates excellent academy ability and a strong work ethic. Outstanding performance this term!",
       teacher: "Mrs. Funmilayo Adebayo, Class Teacher, Basic 5A",
     },
     dateIssued: "7 July 2026",

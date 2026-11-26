@@ -129,7 +129,7 @@ export default function ResultSheet({ data }) {
             }}
           >
             {data.term || 'Third Term'} Progress Report {data.session || ''}{' '}
-            Academic Session
+            academy Session
           </p>
         </div>
 
@@ -201,7 +201,7 @@ export default function ResultSheet({ data }) {
           <tr>
             <td style={infoTd}>Grade:</td>
             <td style={infoTd} colSpan={2}>
-              {data.student?.academic_year || '—'}
+              {data.student?.academy_year || '—'}
             </td>
             <td style={{ ...infoTd, fontWeight: 'bold' }}>
               Pupil's Overall Percentage:
@@ -433,7 +433,7 @@ export default function ResultSheet({ data }) {
             }}
           >
             <p style={{ fontWeight: 'bold', marginBottom: '1px' }}>
-              ACADEMIC GRADING SCALE
+              academy GRADING SCALE
             </p>
             <p>80–100% A DISTINCTION</p>
             <p>70–79% B1 EXCELLENT</p>

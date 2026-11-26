@@ -5,7 +5,7 @@ import { ArrowLeftIcon } from "../../components/Icons";
 import { DocumentIcon } from "../../components/BoxIcons";
 import { COUNTRIES } from "../../data/countries";
 import { startAdmission, getSession, isLoggedIn } from "../../lib/api";
-import { ACADEMIC_SESSION } from "../../lib/config";
+import { academy_SESSION } from "../../lib/config";
 
 const initialForm = {
   studentName: "",
@@ -139,7 +139,7 @@ export default function CompleteApplication() {
       // Prepare application data for the backend
       const applicationData = {
         programmeId: "prog-1", // You should get this from the course selection
-        academicYear: ACADEMIC_SESSION,
+        academyYear: academy_SESSION,
         personalInfo: {
           fullName: form.studentName,
           dateOfBirth: form.dob,
@@ -152,7 +152,7 @@ export default function CompleteApplication() {
           homeAddress: form.homeAddress,
           medicalNotes: form.medicalNotes,
         },
-        academicInfo: {
+        academyInfo: {
           trackName: trackName,
           course: course,
           regularClass: form.regularClass || null,

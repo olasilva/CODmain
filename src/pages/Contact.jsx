@@ -12,7 +12,7 @@ const details = [
   { label: "Phone", value: "+234 903 956 4563" },
 ];
 
-const disciplines = ["Music", "Art", "Academic", "Drama"];
+const disciplines = ["Music", "Art", "academy", "Drama"];
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);

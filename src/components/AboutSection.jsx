@@ -22,7 +22,7 @@ const FALLBACK = allImages['../assets/logo.jpg'] || null;
 const PARAGRAPHS = [
   'Clan of David is a distinguished academy dedicated to discovering, developing, and nurturing young talents.',
   'We are widely recognized for our outstanding Early Years programs, which combine musical skills training, art and creativity, a vibrant educational foundation, and strong character formation rooted in godly values.',
-  'As an institution that blends academic excellence with skill development in one holistic environment, we are committed to total inclusiveness in skills development at the primary education level, making learning fun, practical, and inspiring.',
+  'As an institution that blends academy excellence with skill development in one holistic environment, we are committed to total inclusiveness in skills development at the primary education level, making learning fun, practical, and inspiring.',
 ];
 
 export default function AboutSection() {

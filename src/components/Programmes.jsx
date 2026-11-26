@@ -16,8 +16,8 @@ const tracks = [
     accent: 'bg-cod-pink/10 text-cod-pink',
   },
   {
-    title: 'Academic',
-    desc: 'A balanced curriculum combining music mastery with academic excellence.',
+    title: 'academy',
+    desc: 'A balanced curriculum combining music mastery with academy excellence.',
     to: '/programmes/mixed-track',
     icon: (
       <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -27,8 +27,8 @@ const tracks = [
     accent: 'bg-emerald-500/10 text-emerald-500',
   },
   {
-    title: 'Mixed Media',
-    desc: 'Core academics in Maths, English, Science and Social Studies with a nurturing approach.',
+    title: 'Vocational',
+    desc: 'Core academys in Maths, English, Science and Social Studies with a nurturing approach.',
     to: '/programmes/regular-track',
     icon: (
       <svg viewBox="0 0 24 24" className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="1.8">

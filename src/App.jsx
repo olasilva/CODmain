@@ -5,10 +5,6 @@ import Loader from './components/Loader';
 
 // ─── Public pages ───
 import Home from './pages/Home';
-import MusicTrack from './pages/MusicTrack';
-import RegularTrack from './pages/RegularTrack';
-import AdultEducation from './pages/AdultEducation';
-import MixedTrack from './pages/MixedTrack';
 import Enroll from './pages/enroll';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
@@ -26,6 +22,7 @@ import Contact from './pages/Contact';
 import News from './pages/News';
 import NewsPost from './pages/NewsPost';
 import Programmes from './pages/Programmes';
+import ProgrammeDetail from './pages/ProgrammeDetail'; // <--- ADDED THIS
 import Welcome from './pages/Welcome';
 import Placeholder from './pages/Placeholder';
 
@@ -112,10 +109,8 @@ export default function App() {
           />
 
           {/* ═══════════════ Programme Pages ═══════════════ */}
-          <Route path="/programmes/music-track" element={<MusicTrack />} />
-          <Route path="/programmes/regular-track" element={<RegularTrack />} />
-          <Route path="/programmes/adult-education" element={<AdultEducation />} />
-          <Route path="/programmes/mixed-track" element={<MixedTrack />} />
+          {/* This single route handles ALL programmes based on the slug in the URL */}
+          <Route path="/programmes/:slug" element={<ProgrammeDetail />} />
 
           {/* ═══════════════ Enrollment Flow ═══════════════ */}
           <Route path="/enroll" element={<Enroll />} />

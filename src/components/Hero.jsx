@@ -4,7 +4,7 @@ import heroImg from '../assets/IMG-20260709-WA0056.jpg'
 import heroImgTwo from '../assets/IMG-20260710-WA0004.jpg'
 import heroImgThree from '../assets/IMG-20260709-WA0053__1_.jpg'
 import heroImgFour from '../assets/IMG-20260710-WA0008.jpg'
-import { ACADEMIC_SESSION, WHATSAPP_URL } from '../lib/config'
+import { academy_SESSION, WHATSAPP_URL } from '../lib/config'
 
 const HERO_IMAGES = [
   {
@@ -28,7 +28,7 @@ const HERO_IMAGES = [
 // Typewriter phrases — cycles through these
 const PHRASES = [
   'Musical Excellence',
-  'Academic Growth',
+  'academy Growth',
   'Creative Confidence',
   'Lifelong Passion',
 ]
@@ -187,7 +187,7 @@ export default function Hero() {
                   Now Enrolling
                 </p>
                 <p className="text-sm font-bold text-cod-blue-dark">
-                  {ACADEMIC_SESSION} Session
+                  {academy_SESSION} Session
                 </p>
               </div>
             </div>
